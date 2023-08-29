@@ -1,0 +1,257 @@
+
+const year = [
+    {
+        month: 'Кукса',
+        overall: 540,
+
+    },
+];
+
+let currentTab = 'today';
+
+//Функция отрисовки данных
+function tableContentRender(rows, columns) {
+
+    //Очистка данных с таблицы
+    const tBody = document.getElementById('table-content');
+    tBody.innerHTML = '';
+
+    for (const row of rows) {
+
+        const tr = document.createElement('tr');
+        for (const rowName of columns) {
+            const td = document.createElement('td');
+            td.innerText = row[rowName];
+            tr.appendChild(td);
+        }
+
+        tBody.appendChild(tr);
+    }
+}
+
+
+//переключение состояния табов
+function toggleTab(id) {
+
+    document.querySelector('.active-tab').classList.remove('active-tab');
+    document.getElementById(id).classList.add('active-tab');
+}
+
+// получение суммы всех расходов
+function generalExpensesRender(data){
+    let sum = 0
+    for (let i = 0; i < data.length; i++) {
+        sum += data[i].sum;
+    }
+    console.log(sum);
+    const expenses = document.getElementById('expenses');
+    expenses.innerText = sum + ' ₽';
+}
+
+async function renderMonthTable(group_id, date, userId = null){
+    const dateParts = date.split('-');
+    console.log(dateParts);
+    const year = dateParts[0];
+    const month = dateParts[1];
+    const myHeaders = new Headers();
+    //получаем credentials пользователя из браузера и добавляем в заголовки
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+    let url = `http://localhost:5858/api/expenses/year/${year}/month/${month}/group/${group_id}`;
+
+    if (userId) {
+        url += `/user/${userId}`;
+    }
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    })
+
+    const data = await response.json();
+
+    generalExpensesRender(data);
+
+    tableContentRender(data, ['goods', 'sum', 'date', 'user_name']);
+
+}
+
+async function renderTodayTable(group_id, date, userId = null) {
+
+
+    // создаем объект заголовка, который передаем с fetch
+    const myHeaders = new Headers();
+    //получаем credentials пользователя из браузера и добавляем в заголовки
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+    let url = `http://localhost:5858/api/expenses/day/${date}/group/${group_id}`;
+
+    if (userId) {
+        url += `/user/${userId}`;
+    }
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    });
+
+
+    // получаем json ответа с базы данных
+    const data = await response.json();
+
+    // получение суммы всех расходов
+    generalExpensesRender(data);
+
+    // отрисовываем таблицу с данными за день
+    tableContentRender(data, ['goods', 'sum', 'date', 'user_name']);
+}
+
+let currentUserInfo = null;
+
+// отрисовка таблицы с данными из БД, получение полной информации о юзере
+(async function () {
+    'use strict';
+
+
+    // если пользователь не авторизирован, отправляем его на страницу авторизации
+    if (!localStorage.getItem('credentials')) {
+        window.location.replace("/login.html")
+    }
+
+
+    // получаем json ответа с базы данных
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`)
+    // fetch сам по себе это request. В переменную response он возвращает уже ответ от сервера
+    const response = await fetch('http://localhost:5858/api/user/current', {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    })
+    // в переменную получаем объект json с именем пользователя, айди группы и всеъ пользователей этой группы
+    currentUserInfo = await response.json();
+
+    await selectOptionsRender(currentUserInfo.group_users);
+    console.log(currentUserInfo.group_users)
+
+    // Подписываем кнопку аккаунта именем пользователя
+    document.getElementById('account').innerText = `${currentUserInfo.user_name}`;
+    // Выход из аккаунта по нажатию кнопки
+    document.getElementById('account').addEventListener('click', event => {
+        event.preventDefault();
+        localStorage.removeItem('credentials');
+        window.location.reload();
+    })
+    //console.log(currentUserInfo)
+    // При отрисовки сегодняшней таблицы мы отдаем туда айди группы, для которой отрисовываем данные
+    await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
+
+
+    // отрисовка данных за день
+    document.getElementById('today-tab').addEventListener('click', async event => {
+        event.preventDefault();
+        await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, document.getElementById('user-filter-select').value);
+        toggleTab('today-tab');
+        currentTab = 'today';
+        document.getElementById('table-header').innerText = 'Расходы сегодня';
+        document.getElementById('limit').innerText = '1500Р';
+    });
+
+    // отрисовка данных за месяц
+    document.getElementById('month-tab').addEventListener('click', event => {
+        event.preventDefault();
+        renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, document.getElementById('user-filter-select').value);
+        toggleTab('month-tab');
+        currentTab = 'month'
+        document.getElementById('table-header').innerText = 'Расходы за месяц';
+        document.getElementById('limit').innerText = '45000Р';
+    });
+    console.log(currentUserInfo);
+    // отрисовка данных за год
+    document.getElementById('year-tab').addEventListener('click', event => {
+        event.preventDefault();
+        toggleTab('year-tab');
+        currentTab = 'year';
+        document.getElementById('table-header').innerText = 'Расходы за год';
+    });
+
+})();
+
+// вызов формы заполнения таблицы и добавление туда данных
+(function () {
+    'use strict';
+
+    document.getElementById('addbtn').addEventListener('click', () => {
+        document.querySelector('.form-wrapper_invisible').classList.remove('form-wrapper_invisible')
+
+    });
+
+    document.querySelector('form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const body = {
+            goods: formData.get('goods'),
+            price: formData.get('price')
+        }
+        const myHeaders = new Headers();
+        myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+
+        const response = await fetch(`http://localhost:5858/api/expenses/user/${currentUserInfo.user_id}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: myHeaders,
+        })
+        console.log(response)
+        if (response.status === 200) {
+            document.querySelector('form').reset();
+            document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
+            renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
+            toggleTab('today-tab');
+
+        }
+    })
+
+    document.getElementById('closeform').addEventListener('click', () => {
+        document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
+    });
+
+})();
+
+// Обработка селекта для фильтра расходов по юзерам
+const selectOptionsRender = users => {
+
+    const div = document.querySelector('.table-wrapper__top');
+    const select = document.createElement('select');
+    select.setAttribute('id', 'user-filter-select');
+    const genOption = document.createElement('option');
+    genOption.setAttribute('value', '');
+    genOption.innerText = 'Все члены';
+    select.appendChild(genOption);
+    for (const thisUser of users) {
+        const option = document.createElement('option');
+        option.setAttribute('value', thisUser.user_id);
+        option.innerText = thisUser.name;
+        select.appendChild(option);
+    }
+    div.appendChild(select);
+
+    select.addEventListener('change', event => {
+        const userId = event.target.value;
+
+        // при переключении таба, в глобальную переменную вносится изменение
+        // это нужно для корректного отображение данных при переключении селекта и табов
+        switch (currentTab){
+            case 'today':
+                renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+                break;
+            case 'month':
+                renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+                break;
+        }
+    });
+
+
+};
+
+
+

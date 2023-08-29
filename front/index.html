@@ -1,0 +1,130 @@
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Сводка расходов</title>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+<header class="main-header">
+
+    <div class="main-header__content">
+
+        <div class="main-header__logo"><a href="#">FnKeeper</a></div>
+        <div class="main-header__user">
+            <a href="#" id="account">User</a>
+        </div>
+
+    </div>
+
+</header>
+
+<div class="form-wrapper form-wrapper_invisible">
+
+    <h2 class="form-wrapper__header">Заполните форму</h2>
+
+    <form class="form-wrapper__form" method="post">
+
+        <label>Что вы купили?</label>
+        <input type="text" name="goods" placeholder="Название товара">
+
+        <label>Сколько это стоило?</label>
+        <input type="number" name="price" placeholder="Стоимость">
+
+        <!--<a class="form-wrapper__form_add" href="#">+ еще товар</a> -->
+
+        <input type="submit" value="Сохранить в таблицу" class="btn btn-primary">
+        <input type="btn" value="Отмена" class="btn" id="closeform">
+
+    </form>
+
+</div>
+
+<div class="toaster-success">
+    <p>Запись успешно добавлена</p>
+    <button class="close-btn"><img src="icons/close_FILL0_wght400_GRAD0_opsz48.svg"></button>
+</div>
+
+<main class="main">
+
+    <div class="drop-down__settings">
+        <h4>Сергей</h4>
+        <ul>
+            <li><a href="#">item</a></li>
+            <li><a href="#">item</a></li>
+            <li><a href="#">item</a></li>
+        </ul>
+        <p><a href=""> <img src="">Выйти</a></p>
+    </div>
+
+    <div class="main__header">
+
+        <h1>Отслеживание ваших расходов</h1>
+        <button class="btn btn-primary" id="addbtn">Добавить запись</button>
+
+    </div>
+
+    <div class="main__content">
+
+        <aside>
+
+            <div class="main__content__tabs">
+
+                <p class="active-tab" id="today-tab"><a href="#">Сегодня</a></p>
+                <p id="month-tab"><a href="#">Месяц</a></p>
+                <p id="year-tab"><a href="#">Год</a></p>
+
+            </div>
+
+        </aside>
+
+        <div class="table-wrapper">
+
+            <div class="table-wrapper__top">
+
+                <h2 id="table-header">Расходы сегодня</h2>
+
+            </div>
+
+            <table>
+
+                <thead>
+
+                <tr>
+                    <th>Товар</th>
+                    <th>Стоимость, ₽</th>
+                    <th>Дата</th>
+                    <th>Покупатель</th>
+                </tr>
+
+                </thead>
+
+                <tbody id="table-content">
+
+                </tbody>
+
+            </table>
+
+            <div class="table-wrapper__expenses">
+
+                <p>Всего расходов: <span class="expenses-amount expenses-amount_exceed" id="expenses"></span></p>
+                <p>Лимит на день: <span class="expenses-amount" id="limit">1500₽</span></p>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</main>
+
+
+<script src="sctript.js"></script>
+</body>
+</html>

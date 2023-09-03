@@ -28,13 +28,17 @@
 
     <form class="form-wrapper__form" method="post">
 
-        <label>Что вы купили?</label>
-        <input type="text" name="goods" placeholder="Название товара">
+        <div id="group-wrapper">
+            <div class="purchase">
+                <label>Что вы купили?</label>
+                <input type="text" name="goods" placeholder="Название товара">
 
-        <label>Сколько это стоило?</label>
-        <input type="number" name="price" placeholder="Стоимость">
+                <label>Сколько это стоило?</label>
+                <input type="number" name="price" placeholder="Стоимость">
+            </div>
+        </div>
 
-        <!--<a class="form-wrapper__form_add" href="#">+ еще товар</a> -->
+        <a class="form-wrapper__form_add" href="#">+ еще товар</a>
 
         <input type="submit" value="Сохранить в таблицу" class="btn btn-primary">
         <input type="btn" value="Отмена" class="btn" id="closeform">
@@ -50,14 +54,13 @@
 
 <main class="main">
 
-    <div class="drop-down__settings">
-        <h4>Сергей</h4>
+    <div class="drop-down__settings drop-down__settings_invisible">
+        <h4 id="drop-down__settings__header">User</h4>
         <ul>
-            <li><a href="#">item</a></li>
-            <li><a href="#">item</a></li>
-            <li><a href="#">item</a></li>
+            <li><a href="#">Изменить лимит на месяц</a></li>
+            <li><a href="#">Создать группу</a></li>
         </ul>
-        <p><a href=""> <img src="">Выйти</a></p>
+        <p><a href="#" id="leave-btn">Выйти</a></p>
     </div>
 
     <div class="main__header">

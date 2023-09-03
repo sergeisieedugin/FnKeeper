@@ -89,16 +89,25 @@ class Data
     }
 
 
-    public function addExpense($goods, $price, $user)
+    public function addExpense($purchase, $user)
     {
-        $query = 'insert into expenses (name, sum, user_id) values (:name, :sum, :user_id)';
+        // values оставляем пустым. Добавим значения ниже. Нужно для случаев, когда пользователь добавляет несколько товаров
+        $query = 'insert into expenses (name, sum, user_id) values ';
+        $queries = [];
+        $values = [];
+
+        foreach ($purchase as $item){
+            $queries[] = '(?,?,?)';
+            $values[] = $item['goods'];
+            $values[] = $item['price'];
+            $values[] = $user;
+        }
+
+        // подставляем в конец запроса строку с вопросиками. Туда пойдут значения, которые ввел пользователь
+        $query .= implode(', ', $queries);
 
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute([
-            ':name' => $goods,
-            ':sum' => $price,
-            ':user_id' => $user
-        ]);
+        $stmt->execute($values);
     }
 
     public function getGroupUsers($group)

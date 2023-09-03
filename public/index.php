@@ -128,7 +128,7 @@ $app->put('/api/expenses/user/{user_id}', function (Request $request, Response $
     $body = json_decode($parsedBody, true); #Перекодируем строку json в ассоциативный массив
 
     $data = new Data();
-    $data->addExpense($body['goods'], $body['price'], $args['user_id']);
+    $data->addExpense($body, $args['user_id']);
     return $response
         ->withStatus(200);
 });

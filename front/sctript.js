@@ -136,12 +136,34 @@ let currentUserInfo = null;
 
     // Подписываем кнопку аккаунта именем пользователя
     document.getElementById('account').innerText = `${currentUserInfo.user_name}`;
-    // Выход из аккаунта по нажатию кнопки
+
+    // открытие дроп-даун при нажатии на кнопку аккаунта
     document.getElementById('account').addEventListener('click', event => {
+        event.preventDefault();
+        //останавливает дальнейшее "проникание" клика, предотвращает вызов события, которое идет следом
+        event.stopPropagation();
+        document.getElementById('drop-down__settings__header').innerText = `${currentUserInfo.user_name}`
+        document.querySelector('.drop-down__settings').classList.remove('drop-down__settings_invisible');
+    });
+
+    //закрытие дроп дауна по нажатию вне поля объекта
+    const modal = document.querySelector('.drop-down__settings');
+    document.addEventListener('click', event =>{
+        // переменная, с путем событий, для которых вызываются слушатели
+        const withinBondaries = event.composedPath().includes(modal);
+        // если в пути событий нет дроп дауна, то вешаем ему класс невидимости, тем самым скрывая его
+        if (!withinBondaries){
+            modal.classList.add('drop-down__settings_invisible');
+        }
+    })
+
+    // выход из аккаунта
+    document.getElementById('leave-btn').addEventListener('click', event =>{
         event.preventDefault();
         localStorage.removeItem('credentials');
         window.location.reload();
     })
+
     //console.log(currentUserInfo)
     // При отрисовки сегодняшней таблицы мы отдаем туда айди группы, для которой отрисовываем данные
     await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
@@ -186,13 +208,29 @@ let currentUserInfo = null;
 
     });
 
+    document.querySelector('.form-wrapper__form_add').addEventListener('click', event => {
+        event.preventDefault();
+        const clone = document.querySelector('.purchase').cloneNode(true);
+        // клоны будут с пустыми полями
+        clone.querySelector('input[name="goods"]').value = '';
+        clone.querySelector('input[name="price"]').value = '';
+        document.getElementById('group-wrapper').appendChild(clone);
+    })
+
     document.querySelector('form').addEventListener('submit', async event => {
         event.preventDefault();
-        const formData = new FormData(event.target);
-        const body = {
-            goods: formData.get('goods'),
-            price: formData.get('price')
-        }
+        event.stopPropagation()
+        const body = [];
+
+        // собираем данные из инпутов и засовываем их в массив body, который передаем в fetch
+        document.querySelectorAll('#group-wrapper .purchase').forEach( element => {
+            const purchase = {
+                goods: element.querySelector('input[name="goods"]').value,
+                price: element.querySelector('input[name="price"]').value
+            }
+            body.push(purchase);
+        })
+
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
 
@@ -201,18 +239,31 @@ let currentUserInfo = null;
             body: JSON.stringify(body),
             headers: myHeaders,
         })
-        console.log(response)
+
         if (response.status === 200) {
             document.querySelector('form').reset();
             document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
             renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
             toggleTab('today-tab');
-
         }
+
+        // сохраняем первый попавшийся блок с импутами
+        const purchaseNode = document.querySelector('#group-wrapper .purchase')
+        // полностью удаляем импуты
+        document.getElementById('group-wrapper').innerHTML = '';
+        // создаем новые импуты в родительском блоке
+        document.getElementById('group-wrapper').appendChild(purchaseNode)
     })
 
     document.getElementById('closeform').addEventListener('click', () => {
         document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
+        // сохраняем первый попавшийся блок с импутами
+        const purchaseNode = document.querySelector('#group-wrapper .purchase')
+        // полностью удаляем импуты
+        document.getElementById('group-wrapper').innerHTML = '';
+        // создаем новые импуты в родительском блоке
+        document.getElementById('group-wrapper').appendChild(purchaseNode);
+        document.querySelector('.form-wrapper__form').reset();
     });
 
 })();

@@ -36,15 +36,15 @@ $app->put('/api/signup', function (Request $request, Response $response, $args) 
     #Перекодируем строку json в ассоциативный массив, чтобы положить в БД
     $body = json_decode($parsedBody, true);
 
-    #Создаем новую группу, называя ее именем пользовател
-    $stmt = $data->getPdo()->prepare('insert into groups(name) value (:n)');
+    //Создаем новую группу, называя ее именем пользователя. Создаем владельца группы (-1 так как пока нет владельца)
+    $stmt = $data->getPdo()->prepare("insert into `groups` (name, owner) value (:n, -1)");
     $stmt->execute([
         ':n' => $body['account'],
     ]);
 
-    #Выбираем айди последней добавленной строки в таблице (группа)
+    //Выбираем айди последней добавленной строки в таблице (группа)
     $stmt = $data->getPdo()->query("SELECT LAST_INSERT_ID()");
-    #Возвращаем последнее значение столбца (айди), чтобы в дальнейшем внести ее в таблицу пользователя
+    //Возвращаем последнее значение столбца (айди), чтобы в дальнейшем внести ее в таблицу пользователя
     $groupId = $stmt->fetchColumn();
 
     $insert = 'insert into users(name,password,account, group_id) values (:name,:password,:account,:group_id);';
@@ -55,6 +55,19 @@ $app->put('/api/signup', function (Request $request, Response $response, $args) 
         ':account' => $body['account'],
         ':group_id' => $groupId
     ]);
+
+
+    //Выбираем айди последней добавленной строки в таблице (группа)
+    $stmt = $data->getPdo()->query("SELECT LAST_INSERT_ID()");
+    //Возвращаем последнее значение столбца (айди), чтобы в дальнейшем внести ее в таблицу группы
+    $userId = $stmt->fetchColumn();
+    // добавляем владельца группы (передаем айди пользователя)
+    $stmt = $data->getPdo()->prepare("update `groups` SET owner=:owner where group_id=:group_id");
+    $stmt->execute([
+        ':owner' => $userId,
+        'group_id' => $groupId
+    ]);
+
     return $response->withStatus(201);
 });
 
@@ -65,7 +78,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     #Перекодируем строку json в ассоциативный массив, чтобы проверить есть ли данные в БД
     $body = json_decode($parsedBody, true);
     $row = $data->getRow('select account, password from users where account="' . $body['account'] . '" and password = "' . $body['password'] . '"');
-    var_dump($body['account'],$row);
+    var_dump($body['account'], $row);
     if ($row) {
         return $response->withStatus(201);
     }
@@ -73,8 +86,24 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
 });
 
+// получение всех групп пользователя ( личная группа и группы, куда он вступил )
+$app->get('/api/user/groups', function (Request $request, Response $response, $args) {
+    $account = $request->getServerParams()["PHP_AUTH_USER"];
+    $data = new Data();
+    $user = $data->getUserByAccount($account);
+    $groups = $data->selectData("select name, group_id from `groups`  where owner=".$user['user_id']." or group_id =".$user['group_id']);
+    $payload = json_encode($groups);
+    $response->getBody()->write($payload);
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus(201);
+
+});
+
 // здесь мы узнаем текущего пользователя, его группу и всех пользователей, которые входят в эту группу
 $app->get('/api/user/current', function (Request $request, Response $response, $args) {
+    // Указываем часовой пояс, чтобы не было бага, когда отдаются данные по часовому поясу сервера
+    date_default_timezone_set('Asia/Sakhalin');
     // узнаем текущий авторизированный аккаунт
     $account = $request->getServerParams()["PHP_AUTH_USER"];
     $data = new Data();
@@ -111,7 +140,7 @@ $app->get('/api/expenses/day/{day}/group/{group}[/user/{user_id:[0-9]+}]', funct
 });
 
 // получение данных за месяц
-$app->get('/api/expenses/year/{year}/month/{month}/group/{group}[/user/{user_id:[0-9]+}]', function (Request $request, Response $response, $args){
+$app->get('/api/expenses/year/{year}/month/{month}/group/{group}[/user/{user_id:[0-9]+}]', function (Request $request, Response $response, $args) {
     $data = new Data();
     $result = $data->getMonthData($args['year'], $args['month'], $args['group'], $args['user_id']);
     $payload = json_encode($result);
@@ -170,7 +199,6 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}/day', function (Re
         ->withHeader('Content-Type', 'application/json')#указываем какой тип данных
         ->withStatus(201);
 });
-
 
 
 $app->run();

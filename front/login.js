@@ -127,7 +127,7 @@ document.getElementById('login-link').addEventListener('click', event => {
         const response = await fetch('http://localhost:5858/api/signup', {
             method: 'PUT',
             body: JSON.stringify(body),
-            //headers: myHeaders,
+            headers: myHeaders,
             mode: "cors"
         });
 

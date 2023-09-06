@@ -242,11 +242,15 @@ table th {
     display: flex;
     flex-direction: column;
     row-gap: 12px;
-    padding-bottom: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #979797;
+    margin-bottom: 16px;
 }
 
 .purchase:last-child{
     padding-bottom: 0px;
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .form-wrapper p {

@@ -1,4 +1,3 @@
-
 const year = [
     {
         month: 'Кукса',
@@ -37,8 +36,9 @@ function toggleTab(id) {
     document.getElementById(id).classList.add('active-tab');
 }
 
+
 // получение суммы всех расходов
-function generalExpensesRender(data){
+function generalExpensesRender(data) {
     let sum = 0
     for (let i = 0; i < data.length; i++) {
         sum += data[i].sum;
@@ -48,7 +48,7 @@ function generalExpensesRender(data){
     expenses.innerText = sum + ' ₽';
 }
 
-async function renderMonthTable(group_id, date, userId = null){
+async function renderMonthTable(group_id, date, userId = null) {
     const dateParts = date.split('-');
     console.log(dateParts);
     const year = dateParts[0];
@@ -112,12 +112,10 @@ let currentUserInfo = null;
 (async function () {
     'use strict';
 
-
     // если пользователь не авторизирован, отправляем его на страницу авторизации
     if (!localStorage.getItem('credentials')) {
         window.location.replace("/login.html")
     }
-
 
     // получаем json ответа с базы данных
     const myHeaders = new Headers();
@@ -148,26 +146,24 @@ let currentUserInfo = null;
 
     //закрытие дроп дауна по нажатию вне поля объекта
     const modal = document.querySelector('.drop-down__settings');
-    document.addEventListener('click', event =>{
+    document.addEventListener('click', event => {
         // переменная, с путем событий, для которых вызываются слушатели
         const withinBondaries = event.composedPath().includes(modal);
         // если в пути событий нет дроп дауна, то вешаем ему класс невидимости, тем самым скрывая его
-        if (!withinBondaries){
+        if (!withinBondaries) {
             modal.classList.add('drop-down__settings_invisible');
         }
     })
 
     // выход из аккаунта
-    document.getElementById('leave-btn').addEventListener('click', event =>{
+    document.getElementById('leave-btn').addEventListener('click', event => {
         event.preventDefault();
         localStorage.removeItem('credentials');
         window.location.reload();
     })
 
-    //console.log(currentUserInfo)
     // При отрисовки сегодняшней таблицы мы отдаем туда айди группы, для которой отрисовываем данные
     await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
-
 
     // отрисовка данных за день
     document.getElementById('today-tab').addEventListener('click', async event => {
@@ -208,6 +204,7 @@ let currentUserInfo = null;
 
     });
 
+    // добавление полей товара в форме добавления расходов
     document.querySelector('.form-wrapper__form_add').addEventListener('click', event => {
         event.preventDefault();
         const clone = document.querySelector('.purchase').cloneNode(true);
@@ -217,19 +214,41 @@ let currentUserInfo = null;
         document.getElementById('group-wrapper').appendChild(clone);
     })
 
+    // отправка формы добавления расходов
     document.querySelector('form').addEventListener('submit', async event => {
         event.preventDefault();
-        event.stopPropagation()
+        event.stopPropagation();
+
+        // каждый раз при попытке отправить форму очищаем див с ошибкой
+        const errorDiv = document.querySelector('.form-wrapper__errors');
+        errorDiv.innerHTML = '';
+
         const body = [];
+        let isError = false;
 
         // собираем данные из инпутов и засовываем их в массив body, который передаем в fetch
-        document.querySelectorAll('#group-wrapper .purchase').forEach( element => {
+        document.querySelectorAll('#group-wrapper .purchase').forEach(element => {
             const purchase = {
                 goods: element.querySelector('input[name="goods"]').value,
                 price: element.querySelector('input[name="price"]').value
             }
-            body.push(purchase);
+
+            // Проверяем, если пользователь действительно ввел стоимость и название товара
+            if (purchase.price > 0 && purchase.goods.length > 0) {
+                body.push(purchase);
+            } else {
+                isError = true;
+            }
+
         })
+
+        // Если пользователь ничего не ввел, или ввел отрицательное число, то возвращаем ошибку и форму не отправляем
+        if (isError) {
+            const error = document.createElement('p');
+            error.innerText = 'Введите корректные данные';
+            errorDiv.appendChild(error);
+            return;
+        }
 
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
@@ -240,11 +259,13 @@ let currentUserInfo = null;
             headers: myHeaders,
         })
 
+        // Если все успешно, очищаем форму от ошибок и данных, скрываем ее и обновляем таблицу с расходами
         if (response.status === 200) {
             document.querySelector('form').reset();
             document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
             renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
             toggleTab('today-tab');
+            errorDiv.innerHTML = '';
         }
 
         // сохраняем первый попавшийся блок с импутами
@@ -255,6 +276,7 @@ let currentUserInfo = null;
         document.getElementById('group-wrapper').appendChild(purchaseNode)
     })
 
+    // закрытие формы добавления расходов по нажатию кнопки
     document.getElementById('closeform').addEventListener('click', () => {
         document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
         // сохраняем первый попавшийся блок с импутами
@@ -268,7 +290,7 @@ let currentUserInfo = null;
 
 })();
 
-// Обработка селекта для фильтра расходов по юзерам
+// Создание и обработка селекта для фильтра расходов по юзерам
 const selectOptionsRender = users => {
 
     const div = document.querySelector('.table-wrapper__top');
@@ -291,7 +313,7 @@ const selectOptionsRender = users => {
 
         // при переключении таба, в глобальную переменную вносится изменение
         // это нужно для корректного отображение данных при переключении селекта и табов
-        switch (currentTab){
+        switch (currentTab) {
             case 'today':
                 renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
                 break;

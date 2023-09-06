@@ -2,18 +2,13 @@
 
 class Data
 {
-    public function getSql()
-    {
-        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-        $mysqli = new mysqli("localhost", "my_user", "my_password", "world");
 
-    }
 
     private $pdo;
 
     public function __construct()
     {
-        $this->pdo = new PDO('mysql:host=localhost;port=3306;dbname=financial;', 'user', 'root');
+        $this->pdo = new PDO('mysql:host=localhost;port=3306;dbname=financial;', 'root', 'root');
     }
 
     public function getPdo()
@@ -57,11 +52,11 @@ class Data
     // получение данных за месяц
     public function getMonthData($year, $month, $groupId, $userId = null)
     {
-        $dateFrom = $year.'-'.$month.'-01';
-        $dateTo = $year.'-'.str_pad($month + 1, 2, '0', STR_PAD_LEFT).'-01';
-        $query = "select u.name user_name, e.name goods, DATE_FORMAT(e.date, '%Y-%m-%d, %H:%i') date, e.sum
+        $dateFrom = $year . '-' . $month . '-01';
+        $dateTo = $year . '-' . str_pad($month + 1, 2, '0', STR_PAD_LEFT) . '-01';
+        $query = "select u.name user_name, e.name goods, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m-%d, %H:%i') date, e.sum
                       from expenses e inner join users u on e.user_id=u.user_id 
-                      where e.date between '$dateFrom' and '$dateTo' AND u.group_id=$groupId";
+                      where e.date between '$dateFrom' and '$dateTo' and u.group_id=$groupId";
         if ($userId) {
             $query .= " AND u.user_id=$userId";
         }
@@ -69,11 +64,12 @@ class Data
         return $this->selectData($query);
     }
 
+
     public function getDayData($day, $groupId, $userId = null)
     {
-        $query = "select u.name user_name, e.name goods, DATE_FORMAT(e.date, '%H:%i') date, e.sum
+        $query = "select u.name user_name, e.name goods, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%H:%i') date, e.sum
                       from expenses e inner join users u on e.user_id=u.user_id 
-                      where DATE_FORMAT(e.date, '%Y-%m-%d')='$day' AND u.group_id=$groupId";
+                      where DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m-%d')='$day' AND e.group_id=$groupId";
 
         if ($userId) {
             $query .= " AND u.user_id=$userId";
@@ -91,16 +87,20 @@ class Data
 
     public function addExpense($purchase, $user)
     {
-        // values оставляем пустым. Добавим значения ниже. Нужно для случаев, когда пользователь добавляет несколько товаров
-        $query = 'insert into expenses (name, sum, user_id) values ';
+        // groupId для того, чтобы история расходов сохранялась даже тогда, когда пользователь переключает свои группы
+        $groupId = $this->selectData("select group_id from users where user_id = $user")[0]['group_id'];
+        $query = 'insert into expenses (name, sum, user_id, group_id) values ';
         $queries = [];
+        // values  и queries оставляем пустым. Добавим значения ниже. Нужно для случаев, когда пользователь добавляет несколько товаров
         $values = [];
 
-        foreach ($purchase as $item){
-            $queries[] = '(?,?,?)';
+        foreach ($purchase as $item) {
+            // Вопросы нужны вместо шаблонной строки (:example => example)
+            $queries[] = '(?,?,?,?)';
             $values[] = $item['goods'];
             $values[] = $item['price'];
             $values[] = $user;
+            $values[] = $groupId;
         }
 
         // подставляем в конец запроса строку с вопросиками. Туда пойдут значения, которые ввел пользователь

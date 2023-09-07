@@ -36,6 +36,12 @@ $app->put('/api/signup', function (Request $request, Response $response, $args) 
     #Перекодируем строку json в ассоциативный массив, чтобы положить в БД
     $body = json_decode($parsedBody, true);
 
+    // Проверяем, если такой аккаунт существует
+    $findUser = $data->getRow('select * from users where account="' . $body['account'].'"');
+    if ($findUser){
+        return $response->withStatus(301);
+    }
+
     //Создаем новую группу, называя ее именем пользователя. Создаем владельца группы (-1 так как пока нет владельца)
     $stmt = $data->getPdo()->prepare("insert into `groups` (name, owner) value (:n, -1)");
     $stmt->execute([

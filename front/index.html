@@ -23,7 +23,7 @@
 
 </header>
 
-<div class="form-wrapper form-wrapper_invisible">
+<div class="form-wrapper modal invisible" id="purchase_form">
 
     <h2 class="form-wrapper__header">Заполните форму</h2>
     <div class="form-wrapper__errors"></div>
@@ -49,6 +49,28 @@
 
 </div>
 
+<div class="form-wrapper modal invisible" id="groups_list">
+
+    <h2 class="form-wrapper__header">Ваши группы</h2>
+
+        <div class="purchase" id="personal_group">
+            <h3>Личная группа</h3>
+            <div class="form-wrapper__group">
+                <h4>Antonina</h4>
+                <p>Участники:</p>
+            </div>
+        </div>
+
+        <div class="purchase" id="general_group">
+            <h3>Общие группы</h3>
+            <div class="form-wrapper__group">
+                <h4>Sergei</h4>
+                <p>Участники:</p>
+            </div>
+        </div>
+
+</div>
+
 <div class="toaster-success">
     <p>Запись успешно добавлена</p>
     <button class="close-btn"><img src="icons/close_FILL0_wght400_GRAD0_opsz48.svg"></button>
@@ -56,11 +78,11 @@
 
 <main class="main">
 
-    <div class="drop-down__settings drop-down__settings_invisible">
+    <div class="drop-down__settings modal invisible">
         <h4 id="drop-down__settings__header">User</h4>
         <ul>
             <li><a href="#">Изменить лимит на месяц</a></li>
-            <li><a href="#">Мои группы</a></li>
+            <li id="my_groups_button"><a href="#">Мои группы</a></li>
         </ul>
         <p><a href="#" id="leave-btn">Выйти</a></p>
     </div>

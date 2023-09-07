@@ -4,6 +4,7 @@ const signupForm = document.getElementById('signup-form')
 // переключение на форму с регистрацией
 document.getElementById('signup-link').addEventListener('click', event => {
     event.preventDefault();
+    document.getElementById('signup_error').innerHTML='';
     const forms = document.querySelectorAll('form');
 
     //перебираем формы и смотрим, где нет класса show-form - ставим такой класс. Где есть - убираем
@@ -23,6 +24,7 @@ document.getElementById('signup-link').addEventListener('click', event => {
 // переключение на форму авторизации
 document.getElementById('login-link').addEventListener('click', event => {
     event.preventDefault();
+    document.getElementById('login_error').innerHTML='';
 
     const forms = document.querySelectorAll('form');
     //перебираем формы и смотрим, где нет класса show-form - ставим такой класс. Где есть - убираем
@@ -39,6 +41,8 @@ document.getElementById('login-link').addEventListener('click', event => {
     signupForm.style.display = 'none';
 
 });
+
+const errorDiv = document.querySelector('.form-wrapper__errors');
 
 // авторизация
 (function () {
@@ -70,7 +74,6 @@ document.getElementById('login-link').addEventListener('click', event => {
         myHeaders.append('Content-Type', 'application/json');
 
         // Очищаем див с ошибкой после каждой попытки. Позже, если данные ввода неверны, туда идет параграф с ошибкой
-        const errorDiv = document.querySelector('.form-wrapper__errors');
         errorDiv.innerHTML = '';
 
         // fetch обращается к адресу с параметрами ( метод, хэдерс, боди, мод и тд) и формирует ответ
@@ -102,13 +105,14 @@ document.getElementById('login-link').addEventListener('click', event => {
         }
     });
 })();
-
 // регистрация
 (function () {
 
     'use strict';
 
     document.getElementById('registration').addEventListener('submit', async event => {
+        const errorDiv = document.getElementById('signup_error');
+        errorDiv.innerHTML = '';
         event.preventDefault();
         const formData = new FormData(event.target);
 
@@ -135,6 +139,11 @@ document.getElementById('login-link').addEventListener('click', event => {
             const credentials = btoa(`${body.account}:${body.password}`);
             localStorage.setItem('credentials', credentials)
             window.location.replace('/index.html');
+        }
+        else if (response.status === 301){
+            const error = document.createElement('p');
+            error.innerText = 'Такой аккаунт существует';
+            errorDiv.appendChild(error);
         }
 
 

@@ -28,6 +28,31 @@ function tableContentRender(rows, columns) {
     }
 }
 
+// объявление всех модалок и дроп-даунов
+const purchaseForm = document.getElementById('purchase_form');
+const groupList = document.getElementById('groups_list');
+const modal = document.querySelector('.drop-down__settings');
+
+// закрытие всех модалок при открытии одной
+function closeAllModals(){
+    document.querySelectorAll('.modal').forEach(element=>{
+        if (!element.classList.contains('invisible')){
+            element.classList.add('invisible');
+        }
+    });
+}
+
+// закрытие модалки при нажатии вне поля модалки
+function closeModal(modal) {
+    document.addEventListener('click', event => {
+        // переменная, с путем событий, для которых вызываются слушатели
+        const withinBondaries = event.composedPath().includes(modal);
+        // если в пути событий нет дроп дауна, то вешаем ему класс невидимости, тем самым скрывая его
+        if (!withinBondaries) {
+            modal.classList.add('invisible');
+        }
+    })
+}
 
 //переключение состояния табов
 function toggleTab(id) {
@@ -109,6 +134,7 @@ async function renderTodayTable(group_id, date, userId = null) {
 let currentUserInfo = null;
 
 // отрисовка таблицы с данными из БД, получение полной информации о юзере
+// обработка кнопки с именем аккаунта ( мои группы, лимиты и выход из аккаунта )
 (async function () {
     'use strict';
 
@@ -132,28 +158,30 @@ let currentUserInfo = null;
     await selectOptionsRender(currentUserInfo.group_users);
     console.log(currentUserInfo.group_users)
 
+    // Обработка кнопки аккаунта
     // Подписываем кнопку аккаунта именем пользователя
     document.getElementById('account').innerText = `${currentUserInfo.user_name}`;
 
     // открытие дроп-даун при нажатии на кнопку аккаунта
     document.getElementById('account').addEventListener('click', event => {
+        closeAllModals();
         event.preventDefault();
         //останавливает дальнейшее "проникание" клика, предотвращает вызов события, которое идет следом
         event.stopPropagation();
         document.getElementById('drop-down__settings__header').innerText = `${currentUserInfo.user_name}`
-        document.querySelector('.drop-down__settings').classList.remove('drop-down__settings_invisible');
+        document.querySelector('.drop-down__settings').classList.remove('invisible');
     });
-
     //закрытие дроп дауна по нажатию вне поля объекта
-    const modal = document.querySelector('.drop-down__settings');
-    document.addEventListener('click', event => {
-        // переменная, с путем событий, для которых вызываются слушатели
-        const withinBondaries = event.composedPath().includes(modal);
-        // если в пути событий нет дроп дауна, то вешаем ему класс невидимости, тем самым скрывая его
-        if (!withinBondaries) {
-            modal.classList.add('drop-down__settings_invisible');
-        }
+    closeModal(modal);
+
+    // открытие модалки с группами пользователя
+    document.getElementById('my_groups_button').addEventListener('click', event => {
+        closeAllModals();
+        event.preventDefault();
+        event.stopPropagation();
+        groupList.classList.remove('invisible');
     })
+    closeModal(groupList);
 
     // выход из аккаунта
     document.getElementById('leave-btn').addEventListener('click', event => {
@@ -161,6 +189,7 @@ let currentUserInfo = null;
         localStorage.removeItem('credentials');
         window.location.reload();
     })
+
 
     // При отрисовки сегодняшней таблицы мы отдаем туда айди группы, для которой отрисовываем данные
     await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
@@ -199,10 +228,12 @@ let currentUserInfo = null;
 (function () {
     'use strict';
 
-    document.getElementById('addbtn').addEventListener('click', () => {
-        document.querySelector('.form-wrapper_invisible').classList.remove('form-wrapper_invisible')
-
+    document.getElementById('addbtn').addEventListener('click', event => {
+        event.stopPropagation();
+        closeAllModals()
+        purchaseForm.classList.remove('invisible');
     });
+    closeModal(purchaseForm);
 
     // добавление полей товара в форме добавления расходов
     document.querySelector('.form-wrapper__form_add').addEventListener('click', event => {
@@ -262,7 +293,7 @@ let currentUserInfo = null;
         // Если все успешно, очищаем форму от ошибок и данных, скрываем ее и обновляем таблицу с расходами
         if (response.status === 200) {
             document.querySelector('form').reset();
-            document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
+            purchaseForm.classList.add('invisible');
             renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
             toggleTab('today-tab');
             errorDiv.innerHTML = '';
@@ -278,7 +309,7 @@ let currentUserInfo = null;
 
     // закрытие формы добавления расходов по нажатию кнопки
     document.getElementById('closeform').addEventListener('click', () => {
-        document.querySelector('.form-wrapper').classList.add('form-wrapper_invisible');
+        document.querySelector('.form-wrapper').classList.add('invisible');
         // сохраняем первый попавшийся блок с импутами
         const purchaseNode = document.querySelector('#group-wrapper .purchase')
         // полностью удаляем импуты
@@ -287,6 +318,7 @@ let currentUserInfo = null;
         document.getElementById('group-wrapper').appendChild(purchaseNode);
         document.querySelector('.form-wrapper__form').reset();
     });
+
 
 })();
 
@@ -322,9 +354,5 @@ const selectOptionsRender = users => {
                 break;
         }
     });
-
-
-};
-
-
+}
 

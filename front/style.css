@@ -5,7 +5,7 @@
     color: #323232;
 }
 
-a{
+a {
     text-decoration: none;
 }
 
@@ -82,7 +82,7 @@ body {
     background: #5489d0;
 }
 
-.drop-down__settings{
+.drop-down__settings {
     background-color: #fff;
     display: flex;
     position: absolute;
@@ -94,26 +94,26 @@ body {
     border-radius: 8px;
 }
 
-.drop-down__settings_invisible{
+.drop-down__settings_invisible {
     display: none;
 }
 
-.drop-down__settings ul{
+.drop-down__settings ul {
     margin: 12px 0 12px 0;
 }
 
-.drop-down__settings li{
+.drop-down__settings li {
     list-style-type: none;
     padding: 8px 0px;
 }
 
-.drop-down__settings p{
+.drop-down__settings p {
     border-top: 1px solid #979797;
     padding-top: 8px;
     cursor: pointer;
 }
 
-.drop-down__settings p a{
+.drop-down__settings p a {
     color: red;
     display: block;
 
@@ -160,6 +160,10 @@ main {
 
 .main__content aside a:hover {
     background: #fff;
+}
+
+.modal li{
+    cursor: pointer;
 }
 
 .active-tab {
@@ -238,23 +242,43 @@ table th {
     box-shadow: 0px 8px 10px 0px rgba(0, 0, 0, 0.20), 0px 6px 30px 0px rgba(0, 0, 0, 0.12), 0px 16px 24px 0px rgba(0, 0, 0, 0.14);
 }
 
-.purchase{
+.purchase {
     display: flex;
     flex-direction: column;
     row-gap: 12px;
     padding-bottom: 16px;
     border-bottom: 1px solid #979797;
     margin-bottom: 16px;
+    margin-top: 12px;
 }
 
 .purchase:last-child{
+    margin-top: 0;
+}
+
+.purchase:last-child {
     padding-bottom: 0px;
     border-bottom: none;
     margin-bottom: 0;
 }
 
-.form-wrapper p {
-    text-align: center;
+.form-wrapper__group{
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+}
+
+.form-wrapper__group:hover{
+    background: #dce9fc;
+}
+
+.form-wrapper__group h4{
+    margin-bottom: 4px;
+}
+
+.form-wrapper__group p{
+    font-size: 14px;
 }
 
 .form-wrapper__errors {
@@ -264,10 +288,6 @@ table th {
 .form-wrapper__errors p {
     color: red;
     text-align: left;
-}
-
-.form-wrapper_invisible {
-    display: none;
 }
 
 .form-wrapper__form {
@@ -334,6 +354,7 @@ table th {
     border: 2px solid #6dd770;
 }
 
+
 .toaster-success p {
     font-size: 16px;
 }
@@ -347,6 +368,10 @@ table th {
 .close-btn img {
     width: 22px;
     height: 22px;
+}
+
+.invisible {
+    display: none;
 }
 
 

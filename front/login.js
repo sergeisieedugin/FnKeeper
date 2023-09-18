@@ -140,13 +140,14 @@ const errorDiv = document.querySelector('.form-wrapper__errors');
             localStorage.setItem('credentials', credentials)
             window.location.replace('/index.html');
         }
-        else if (response.status === 301){
+        else if (response.status === 400){
+            // Парсим ответ бэкэнда в виде объекта json
+            const answer = await response.json()
             const error = document.createElement('p');
-            error.innerText = 'Такой аккаунт существует';
+            // Добавляем ответ по ключу message в параграф
+            error.innerText = answer.message;
             errorDiv.appendChild(error);
         }
-
-
     })
 
 })();

@@ -36,10 +36,23 @@ $app->put('/api/signup', function (Request $request, Response $response, $args) 
     #Перекодируем строку json в ассоциативный массив, чтобы положить в БД
     $body = json_decode($parsedBody, true);
 
+    // Проверяем если пользователь заполнил все поля
+    if ($body['name'] === '' || $body['password'] === '' || $body['account'] === '') {
+        $payload = json_encode([
+            'message' => 'Заполните все поля'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withStatus(400);
+    }
+
     // Проверяем, если такой аккаунт существует
-    $findUser = $data->getRow('select * from users where account="' . $body['account'].'"');
-    if ($findUser){
-        return $response->withStatus(301);
+    $findUser = $data->getRow('select * from users where account="' . $body['account'] . '"');
+    if ($findUser) {
+        $payload = json_encode([
+            'message' => 'Профиль с таким логином уже существует'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withStatus(400);
     }
 
     //Создаем новую группу, называя ее именем пользователя. Создаем владельца группы (-1 так как пока нет владельца)
@@ -97,7 +110,12 @@ $app->get('/api/user/groups', function (Request $request, Response $response, $a
     $account = $request->getServerParams()["PHP_AUTH_USER"];
     $data = new Data();
     $user = $data->getUserByAccount($account);
-    $groups = $data->selectData("select name, group_id from `groups`  where owner=".$user['user_id']." or group_id =".$user['group_id']);
+    $groups = $data->selectData("
+        select g.name, g.group_id, GROUP_CONCAT(u.name) participants from `groups` g
+                      left join users u on g.group_id = u.group_id
+                      where g.group_id = " . $user['group_id'] . "
+                      group by g.group_id;");
+
     $payload = json_encode($groups);
     $response->getBody()->write($payload);
     return $response
@@ -117,6 +135,7 @@ $app->get('/api/user/current', function (Request $request, Response $response, $
     $body = [
         'user_id' => $user['user_id'],
         'user_name' => $user['name'],
+        'user_account' => $user['account'],
         'group_id' => $user['group_id'],
         'group_users' => $data->getGroupUsers($user['group_id']),
         'date' => date('Y-m-d')
@@ -126,6 +145,63 @@ $app->get('/api/user/current', function (Request $request, Response $response, $
     return $response
         ->withHeader('Content-Type', 'application/json')
         ->withStatus(201);
+});
+
+// формирование кода приглашения в группу и добавление его в таблицу invites
+$app->post('/api/group/invite/code', function (Request $request, Response $response, $args) {
+    $data = new Data();
+    $unique = substr(base64_encode(mt_rand()), 0, 15);
+    $user = $request->getServerParams()["PHP_AUTH_USER"];
+    $stmt = $data->getPdo()->query('select group_id from `groups` where name="' . $user . '"');
+    // возвращает столбец из PDO объекта
+    $group = $stmt->fetchColumn();
+    $stmt = $data->getPdo()->prepare('insert into invites(code,group_id) values(:code,:group_id)');
+    $stmt->execute([
+        ':code' => $unique,
+        ':group_id' => $group
+    ]);
+
+    // Отправляем на фронт код, который был сгенерирован и записан в БД
+    $code = json_encode([
+        'code' => $unique
+    ]);
+    $response->getBody()->write($code);
+    return $response->withStatus(201);
+
+
+});
+
+// Выход из группы, куда был приглашен пользователь
+$app->put('/api/group/leave', function (Request $request, Response $response, $args) {
+    $data = new Data();
+    $user = $request->getServerParams()["PHP_AUTH_USER"];
+    $stmt = $data->getPdo()->query('select owner from `groups` where name="' . $user . '"');
+    $personalGroup = $stmt->fetchColumn();
+    $stmt = $data->getPdo()->prepare('update users set group_id="' . $personalGroup . '" where account="' . $user . '"');
+    $stmt->execute();
+    return $response->withStatus(201);
+
+});
+
+// приглашение по коду
+$app->put('/api/group/change', function (Request $request, Response $response, $args) {
+    $data = new Data();
+    $parsedBody = $request->getBody()->getContents();
+    $body = json_decode($parsedBody, true);
+    $stmt = $data->getPdo()->query('select group_id from invites where code= "' . $body['code'] . '" and activated = 0');
+    $group = $stmt->fetchColumn();
+
+    if (!$group) {
+        return $response->withStatus(403);
+    }
+
+    $user = $request->getServerParams()["PHP_AUTH_USER"];
+    $stmt = $data->getPdo()->prepare('update users set group_id= "' . $group . '" where account= "' . $user . '"');
+    $stmt->execute();
+    $stmt = $data->getPdo()->prepare('update invites set activated = 1 where code= "' . $body['code'] . '"');
+    $stmt->execute();
+
+    return $response->withStatus(201);
 });
 
 #Получение трат за определенный день всей группы (или определенного пользователя, если передан в урле)
@@ -156,9 +232,38 @@ $app->get('/api/expenses/year/{year}/month/{month}/group/{group}[/user/{user_id:
         ->withStatus(201);
 });
 
+$app->get('/api/expenses/year/{year}/group/{group}', function (Request $request, Response $response, $args) {
+    $data = new Data();
+    $months = [
+        '01' => 'Январь',
+        '02' => 'Февраль',
+        '03' => 'Март',
+        '04' => 'Апрель',
+        '05' => 'Май',
+        '06' => 'Июнь',
+        '07' => 'Июль',
+        '08' => 'Август',
+        '09' => 'Сентябрь',
+        '10' => 'Октябрь',
+        '11' => 'Ноябрь',
+        '12' => 'Декабрь'
+    ]
+    ;
+    $result = $data->getYearData($args['year'], $args['group']);
+    // меняем цифры месяца на нормальное название
+    for ($i = 0; $i<count($result); $i++){
+        $result[$i]['month'] = $months[$result[$i]['month']];
+    }
+    $payload = json_encode($result);
+    $response->getBody()->write($payload);
+    return $response
+        ->withStatus(201)
+        ->withHeader('Content-Type', 'application/json');
+});
+
 
 #Добавление пользователем траты
-$app->put('/api/expenses/user/{user_id}', function (Request $request, Response $response, $args) {#В args идет то, что в {}
+$app->post('/api/expenses/user/{user_id}', function (Request $request, Response $response, $args) {#В args идет то, что в {}
     $parsedBody = $request->getBody()->getContents();
     $body = json_decode($parsedBody, true); #Перекодируем строку json в ассоциативный массив
 

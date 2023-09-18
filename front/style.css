@@ -7,6 +7,7 @@
 
 a {
     text-decoration: none;
+    display: block;
 }
 
 body {
@@ -78,6 +79,13 @@ body {
     color: #fff;
 }
 
+.leave-btn{
+    color: red;
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+}
+
 .btn-primary:hover {
     background: #5489d0;
 }
@@ -111,21 +119,21 @@ body {
     border-top: 1px solid #979797;
     padding-top: 8px;
     cursor: pointer;
+    text-align: center; !important;
 }
 
 .drop-down__settings p a {
     color: red;
     display: block;
-
+    float: left;
 }
+
 
 /* Настройка главного контента */
 
 main {
     max-width: 980px;
     margin: 0 auto;
-
-
 }
 
 .main__content {
@@ -218,6 +226,7 @@ table th {
 .table-wrapper__expenses p {
     padding-bottom: 4px;
     font-size: 16px;
+    text-align: left; !important;
 }
 
 .expenses-amount {
@@ -231,7 +240,8 @@ table th {
 
 /* стилизация формы заполнения данных */
 .form-wrapper {
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: absolute;
     top: 15%;
     left: 43%;
@@ -242,35 +252,107 @@ table th {
     box-shadow: 0px 8px 10px 0px rgba(0, 0, 0, 0.20), 0px 6px 30px 0px rgba(0, 0, 0, 0.12), 0px 16px 24px 0px rgba(0, 0, 0, 0.14);
 }
 
+#groups_list h3,p{
+    text-align: center;
+}
+
+#groups_list h3{
+    margin-bottom: 8px;
+}
+
+.invite{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.invite h4{
+    margin: 16px 0 0 0;
+    text-align: center;
+}
+
+.invite p{
+    background-color: #e9e9e9;
+    font-size: 20px;
+    padding: 16px 0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.form-wrapper__tabs{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border: 1px #979797 solid;
+    border-radius: 8px;
+
+}
+
+.form-wrapper__tabs a{
+    text-align: center;
+    padding: 8px 12px;
+    width: 100%;
+}
+
+.form-wrapper__tabs a:last-child{
+    border-left: 1px solid #979797;
+}
+
+.form-wrapper__tabs_active-left{
+    background-color: #dfecff;
+    border-radius: 8px 0 0 8px;
+}
+
+.form-wrapper__tabs_active-right{
+    background-color: #DFECFFFF;
+    border-radius: 0 8px 8px 0;
+}
+
 .purchase {
     display: flex;
     flex-direction: column;
-    row-gap: 12px;
+    row-gap: 8px;
     padding-bottom: 16px;
     border-bottom: 1px solid #979797;
     margin-bottom: 16px;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 .purchase:last-child{
     margin-top: 0;
-}
-
-.purchase:last-child {
     padding-bottom: 0px;
     border-bottom: none;
     margin-bottom: 0;
 }
 
-.form-wrapper__group{
-    cursor: pointer;
-    padding: 8px 12px;
+#groups {
+    border: 1px solid #979797;
     border-radius: 8px;
+    padding: 4px 10px;
+    margin-top: 16px;
+}
+
+.form-wrapper__group{
+    padding: 8px 12px;
+    border-bottom: 1px solid #979797;
+}
+
+.form-wrapper__group h4{
+    text-align: center;
+}
+
+.form-wrapper__group:last-child{
     border: none;
 }
 
-.form-wrapper__group:hover{
-    background: #dce9fc;
+.form-wrapper__group_links{
+    margin-top: 8px;
+}
+
+.form-wrapper__group_links a{
+    font-size: 14px;
+    color: #3d73b9;
 }
 
 .form-wrapper__group h4{
@@ -293,10 +375,9 @@ table th {
 .form-wrapper__form {
     display: flex;
     flex-direction: column;
-    margin-top: 16px;
+    margin-top: 8px;
     row-gap: 12px;
 }
-
 
 .form-wrapper__form input {
     padding: 8px;

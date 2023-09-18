@@ -28,7 +28,7 @@
     <h2 class="form-wrapper__header">Заполните форму</h2>
     <div class="form-wrapper__errors"></div>
 
-    <form class="form-wrapper__form" method="post">
+    <form class="form-wrapper__form" method="post" id="newGoodsForm">
 
         <div id="group-wrapper">
             <div class="purchase">
@@ -53,21 +53,31 @@
 
     <h2 class="form-wrapper__header">Ваши группы</h2>
 
-        <div class="purchase" id="personal_group">
-            <h3>Личная группа</h3>
-            <div class="form-wrapper__group">
-                <h4>Antonina</h4>
-                <p>Участники:</p>
-            </div>
+        <div class="purchase" id="groups">
+
         </div>
 
-        <div class="purchase" id="general_group">
-            <h3>Общие группы</h3>
-            <div class="form-wrapper__group">
-                <h4>Sergei</h4>
-                <p>Участники:</p>
-            </div>
-        </div>
+    <div class="form-wrapper__tabs">
+
+        <a href="#" id="joinBtn">Вступить</a>
+        <a href="#" id="inviteBtn">Пригласить</a>
+
+    </div>
+
+    <div class="invite" id="invite-send">
+
+    </div>
+
+    <div class="invite" id="join-send">
+
+        <h4>Введите код приглашения</h4>
+
+        <form  method="post" class="form-wrapper__form" id="joinForm">
+            <input type="text" name="code" placeholder="Код приглашения">
+            <input type="submit" value="Присоединиться к группе" class="btn btn-primary">
+        </form>
+
+    </div>
 
 </div>
 
@@ -84,7 +94,7 @@
             <li><a href="#">Изменить лимит на месяц</a></li>
             <li id="my_groups_button"><a href="#">Мои группы</a></li>
         </ul>
-        <p><a href="#" id="leave-btn">Выйти</a></p>
+        <p id="leave-btn"><a href="#">Выйти</a></p>
     </div>
 
     <div class="main__header">
@@ -135,6 +145,8 @@
 
             </table>
 
+            <canvas id="yearChart"></canvas>
+
             <div class="table-wrapper__expenses">
 
                 <p>Всего расходов: <span class="expenses-amount expenses-amount_exceed" id="expenses"></span></p>
@@ -142,16 +154,13 @@
 
             </div>
 
-
         </div>
-
 
     </div>
 
-
 </main>
 
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="sctript.js"></script>
 </body>
 </html>

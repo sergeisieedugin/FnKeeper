@@ -52,11 +52,10 @@ class Data
     // получение данных за месяц
     public function getMonthData($year, $month, $groupId, $userId = null)
     {
-        $dateFrom = $year . '-' . $month . '-01';
-        $dateTo = $year . '-' . str_pad($month + 1, 2, '0', STR_PAD_LEFT) . '-01';
+        $date = $year . '-' . $month;
         $query = "select u.name user_name, e.name goods, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m-%d, %H:%i') date, e.sum
                       from expenses e inner join users u on e.user_id=u.user_id 
-                      where e.date between '$dateFrom' and '$dateTo' and u.group_id=$groupId";
+                      where DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m') = '$date' and e.group_id=$groupId";
         if ($userId) {
             $query .= " AND u.user_id=$userId";
         }
@@ -64,6 +63,14 @@ class Data
         return $this->selectData($query);
     }
 
+    public function getYearData($year, $groupId)
+    {
+        $query = "select DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%m') month, SUM(e.sum) sum
+                        from expenses e
+                        where DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y') = '$year' and e.group_id=$groupId
+                        group by month";
+        return $this->selectData($query);
+    }
 
     public function getDayData($day, $groupId, $userId = null)
     {

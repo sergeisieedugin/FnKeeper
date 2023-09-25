@@ -2,6 +2,7 @@
     "require": {
         "slim/slim": "4.*",
         "slim/psr7": "^1.6",
-        "tuupola/slim-basic-auth": "^3.3"
+        "tuupola/slim-basic-auth": "^3.3",
+        "robmorgan/phinx": "^0.15.2"
     }
 }

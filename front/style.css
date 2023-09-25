@@ -67,6 +67,7 @@ body {
     padding: 8px 24px;
     cursor: pointer;
     border-radius: 8px;
+    box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
     border: none !important;
 }
 
@@ -185,6 +186,7 @@ main {
 .table-wrapper {
     width: 100%;
     padding: 0 48px 0 0;
+    box-sizing: border-box;
 }
 
 .table-wrapper__top {
@@ -229,6 +231,14 @@ table th {
     text-align: left; !important;
 }
 
+.table__delete_btn{
+    color: red;
+    cursor: pointer;
+    text-align: center;
+    vertical-align: center;
+    margin: 0 auto;
+}
+
 .expenses-amount {
     font-weight: bold;
 }
@@ -252,6 +262,8 @@ table th {
     box-shadow: 0px 8px 10px 0px rgba(0, 0, 0, 0.20), 0px 6px 30px 0px rgba(0, 0, 0, 0.12), 0px 16px 24px 0px rgba(0, 0, 0, 0.14);
 }
 
+
+
 #groups_list h3,p{
     text-align: center;
 }
@@ -267,7 +279,7 @@ table th {
 }
 
 .invite h4{
-    margin: 16px 0 0 0;
+    margin: 16px 0 12px 0;
     text-align: center;
 }
 
@@ -283,30 +295,27 @@ table th {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
-    border: 1px #979797 solid;
     border-radius: 8px;
+    justify-content: center;
 
 }
 
-.form-wrapper__tabs a{
+.form-wrapper__tab{
+    background-color: #fff;
+    flex: 1;
+    color: #323232;
     text-align: center;
-    padding: 8px 12px;
-    width: 100%;
-}
-
-.form-wrapper__tabs a:last-child{
-    border-left: 1px solid #979797;
-}
-
-.form-wrapper__tabs_active-left{
-    background-color: #dfecff;
+    padding: 8px 16px;
     border-radius: 8px 0 0 8px;
+    box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
 }
 
-.form-wrapper__tabs_active-right{
-    background-color: #DFECFFFF;
+.form-wrapper__tab:last-child{
     border-radius: 0 8px 8px 0;
+}
+
+.form-wrapper__tab_active{
+    background-color: #ddeafa;
 }
 
 .purchase {
@@ -455,5 +464,29 @@ table th {
     display: none;
 }
 
+#yearChart{
+    margin: 24px 0;
+}
+
+
+@media (max-width: 470px) {
+
+    .main{
+        width: 100%;
+        padding: 0 8px 0 8px;
+        box-sizing: border-box;
+    }
+
+    .main__header{
+        flex-direction: column;
+        justify-content: normal;
+        row-gap: 16px;
+        width: 100%;
+    }
+
+    .main__header h1{
+        font-size: 24px;
+    }
+}
 
 

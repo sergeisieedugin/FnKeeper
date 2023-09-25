@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <title>FnKeeper - Вход</title>
     <link rel="icon" type="image/x-icon" href="/icons/favicon.svg">
     <link href="login.css" rel="stylesheet">
@@ -10,59 +12,62 @@
 
 <main class="main">
 
-    <div class="main__header">
-        <h1>FnKeeper</h1>
-        <p>Помощник в сфере экономии</p>
+    <div class="content">
+
+        <div class="main__header">
+            <h1>FnKeeper</h1>
+            <p>Помощник в сфере экономии</p>
+        </div>
+
+        <div class="form-wrapper" id="login-form">
+
+            <h2 class="form-wrapper__header">Вход в аккаунт</h2>
+
+            <div class="form-wrapper__errors" id="login_error"></div>
+
+            <form class="form-wrapper__form show-form" id="login">
+
+                <label>Логин</label>
+                <input type="text" name="login" placeholder="Sergei">
+
+                <label>Пароль</label>
+                <input type="password" name="password" placeholder="********">
+
+                <input type="submit" class="btn btn-primary" value="Войти">
+
+                <p>Нет аккаунта? <a href="#" class="form-wrapper__form_add" id="signup-link">Зарегистрируйтесь</a></p>
+
+            </form>
+
+        </div>
+
+
+        <div class="form-wrapper" id="signup-form">
+
+            <h2 class="form-wrapper__header">Регистрация</h2>
+
+            <div class="form-wrapper__errors" id="signup_error"></div>
+
+            <form class="form-wrapper__form" id='registration'>
+
+                <label>Имя пользователя</label>
+                <input type="text" name="name" placeholder="Сергей">
+
+                <label>Логин</label>
+                <input type="text" name="login" placeholder="Sergei">
+
+                <label>Пароль</label>
+                <input type="password" name="password" placeholder="********">
+
+                <input type="submit" class="btn btn-primary" value="Создать аккаунт">
+
+                <p>Есть аккаунт? <a href="#" class="form-wrapper__form_add" id="login-link">Войдите</a></p>
+
+            </form>
+
+        </div>
+
     </div>
-
-    <div class="form-wrapper" id="login-form">
-
-        <h2 class="form-wrapper__header">Войдите в аккаунт</h2>
-
-        <div class="form-wrapper__errors" id="login_error"></div>
-
-        <form class="form-wrapper__form show-form" id="login">
-
-            <label>Логин</label>
-            <input type="text" name="login" placeholder="Sergei">
-
-            <label>Пароль</label>
-            <input type="password" name="password" placeholder="********">
-
-            <input type="submit" class="btn btn-primary" value="Войти">
-
-            <p>Нет аккаунта? <a href="#" class="form-wrapper__form_add" id="signup-link">Зарегистрируйтесь</a></p>
-
-        </form>
-
-    </div>
-
-
-    <div class="form-wrapper" id="signup-form">
-
-        <h2 class="form-wrapper__header">Регистрация</h2>
-
-        <div class="form-wrapper__errors" id="signup_error"></div>
-
-        <form class="form-wrapper__form" id='registration'>
-
-            <label>Имя пользователя</label>
-            <input type="text" name="name" placeholder="Сергей">
-
-            <label>Логин</label>
-            <input type="text" name="login" placeholder="Sergei">
-
-            <label>Пароль</label>
-            <input type="password" name="password" placeholder="********">
-
-            <input type="submit" class="btn btn-primary" value="Создать аккаунт">
-
-            <p>Есть аккаунт? <a href="#" class="form-wrapper__form_add" id="login-link">Войдите</a></p>
-
-        </form>
-
-    </div>
-
 
 </main>
 

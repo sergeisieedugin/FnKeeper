@@ -19,10 +19,10 @@ class Data
 
     public function getUsersForAuth()
     {
-        $users = $this->selectData('select account, password from users');
+        $users = $this->selectData('select account, token from users');
         $result = [];
         foreach ($users as $user) {
-            $result[$user['account']] = $user['password'];
+            $result[$user['account']] = $user['token'];
         }
         return $result;
     }
@@ -53,7 +53,7 @@ class Data
     public function getMonthData($year, $month, $groupId, $userId = null)
     {
         $date = $year . '-' . $month;
-        $query = "select u.name user_name, e.name goods, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m-%d, %H:%i') date, e.sum
+        $query = "select u.name user_name, e.name goods, e.expenses_id, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%d %b, %H:%i') date, e.sum
                       from expenses e inner join users u on e.user_id=u.user_id 
                       where DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m') = '$date' and e.group_id=$groupId";
         if ($userId) {
@@ -74,7 +74,7 @@ class Data
 
     public function getDayData($day, $groupId, $userId = null)
     {
-        $query = "select u.name user_name, e.name goods, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%H:%i') date, e.sum
+        $query = "select u.name user_name, e.name goods, e.expenses_id, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%H:%i') date, e.sum
                       from expenses e inner join users u on e.user_id=u.user_id 
                       where DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%Y-%m-%d')='$day' AND e.group_id=$groupId";
 
@@ -115,6 +115,7 @@ class Data
 
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
+
     }
 
     public function getGroupUsers($group)

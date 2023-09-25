@@ -89,9 +89,11 @@ const errorDiv = document.querySelector('.form-wrapper__errors');
         });
         console.log(response)
         if (response.status === 201) {
+            const token = await response.json();
+
             // если такой профиль есть ( ответ 201), перекодирую данные в Basic64 и сохраняю
             // логин и пароль кодирую в Basic64 (для сохранения в локальном хранилище)
-            const credentials = btoa(`${body.account}:${body.password}`);
+            const credentials = btoa(`${body.account}:${token.token}`);
             // сохраняю в хранилище браузера. В дальнейшем это пригодится при навигации на других страницах.
             //  Буду вызывать fetch с headers : "Authorization", "Basic dGVzdC1hY2M6MTIz" для проверки авторизации
             localStorage.setItem('credentials', credentials);
@@ -136,7 +138,8 @@ const errorDiv = document.querySelector('.form-wrapper__errors');
         });
 
         if (response.status === 201) {
-            const credentials = btoa(`${body.account}:${body.password}`);
+            const token = await response.json();
+            const credentials = btoa(`${body.account}:${token.token}`);
             localStorage.setItem('credentials', credentials)
             window.location.replace('/index.html');
         }

@@ -1,17 +1,16 @@
-const year = [
-    {
-        month: 'Кукса',
-        overall: 540,
-
-    },
-];
-
 let currentTab = 'today';
 
 // объявление всех модалок и дроп-даунов
 const purchaseForm = document.getElementById('purchase_form');
 const groupList = document.getElementById('groups_list');
 const select = document.querySelector('.drop-down__settings');
+
+// Перезагрузка страницы при нажатии на логотип
+const logo = document.querySelector('.main-header__logo');
+logo.addEventListener('click', event => {
+    event.preventDefault();
+    window.location.reload();
+});
 
 //Функция отрисовки данных
 function tableContentRender(rows, columns) {
@@ -23,12 +22,16 @@ function tableContentRender(rows, columns) {
     for (const row of rows) {
 
         const tr = document.createElement('tr');
+        const deleteBtn = document.createElement('td');
+        deleteBtn.innerText = 'Удалить';
+        deleteBtn.classList.add('table__delete_btn');
+        deleteBtn.setAttribute('data-expenses_id', row.expenses_id)
         for (const rowName of columns) {
             const td = document.createElement('td');
             td.innerText = row[rowName];
             tr.appendChild(td);
+            tr.appendChild(deleteBtn);
         }
-
         tBody.appendChild(tr);
     }
 }
@@ -47,6 +50,7 @@ function hideElement(element) {
     element.classList.add('invisible');
 }
 
+// показывает элемент DOM
 function showElement(element) {
     element.classList.remove('invisible');
 }
@@ -73,20 +77,115 @@ function toggleTab(id) {
 
 
 // получение суммы всех расходов
-function generalExpensesRender(data) {
+function expensesCounter(data) {
     let sum = 0
     for (let i = 0; i < data.length; i++) {
 
         sum += parseInt(data[i].sum);
     }
+    return sum;
+}
 
+// Отрисовка траты определенным цветом в зависимости от превышения лимита
+function renderExpenses(sum, limit) {
     const expenses = document.getElementById('expenses');
-    expenses.innerText = sum + ' ₽';
+    if (sum > limit.limit) {
+        expenses.innerText = sum.toLocaleString() + ' ₽';
+        expenses.classList.add('expenses-amount_exceed')
+    } else {
+        expenses.classList.remove('expenses-amount_exceed');
+        expenses.innerText = sum.toLocaleString() + ' ₽';
+    }
+}
+
+// Получение лимита расходов на месяц
+async function getMonthLimit(groupId, month, year) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+    const response = await fetch(`http://localhost:5858/api/limit/group/${groupId}/month/${month}/year/${year}`, {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    })
+
+    const limit = await response.json();
+
+    if (response.status === 201) {
+
+        document.getElementById('limit').innerText = limit.limit.toLocaleString() + ' ₽';
+
+    } else if (response.status === 302) {
+        document.getElementById('limit').innerText = limit.message;
+    }
+
+    return limit;
+}
+
+// Получение лимита расходов на день
+async function getDayLimit(group, month, year,day) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+    const response = await fetch(`http://localhost:5858/api/limit/group/${group}/month/${month}/year/${year}/day/${day}`, {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    })
+
+    const limit = await response.json();
+
+    if (response.status === 201) {
+
+        document.getElementById('limit').innerText = limit.limit.toLocaleString() + ' ₽';
+
+    } else if (response.status === 302) {
+        document.getElementById('limit').innerText = limit.message;
+    }
+
+    return limit;
+}
+
+
+async function renderTodayTable(group_id, date, userId = null) {
+
+
+    // создаем объект заголовка, который передаем с fetch
+    const myHeaders = new Headers();
+    //получаем credentials пользователя из браузера и добавляем в заголовки
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+    let url = `http://localhost:5858/api/expenses/day/${date}/group/${group_id}`;
+
+    if (userId) {
+        url += `/user/${userId}`;
+    }
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    });
+
+    // получаем json ответа с базы данных
+    const data = await response.json();
+
+    const dateParts = date.split('-');
+    const year = dateParts[0];
+    const month = dateParts[1];
+    const day = dateParts[2];
+
+    // получение суммы всех расходов
+    const sum = expensesCounter(data);
+
+    const limit = await getDayLimit(group_id, month, year, day);
+
+    renderExpenses(sum, limit);
+
+
+    // отрисовываем таблицу с данными за день
+    await tableContentRender(data, ['goods', 'sum', 'date', 'user_name']);
 }
 
 async function renderMonthTable(group_id, date, userId = null) {
     const dateParts = date.split('-');
-    console.log(dateParts);
     const year = dateParts[0];
     const month = dateParts[1];
     const myHeaders = new Headers();
@@ -105,29 +204,70 @@ async function renderMonthTable(group_id, date, userId = null) {
     })
 
     const data = await response.json();
-    console.log(data);
 
-    generalExpensesRender(data);
+    const sum = expensesCounter(data);
+    const limit = await getMonthLimit(group_id, month, year);
+
+    renderExpenses(sum, limit);
 
     tableContentRender(data, ['goods', 'sum', 'date', 'user_name']);
 }
 
-async function renderYearData(groupId, date){
+async function renderYearData(groupId, date) {
     const dataParts = date.split('-');
     const year = dataParts[0];
+    const month = dataParts[1];
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`http://localhost:5858/api/expenses/year/${year}/group/${groupId}`,{
+    const response = await fetch(`http://localhost:5858/api/expenses/year/${year}/group/${groupId}`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
     })
 
     const data = await response.json();
-    console.log(data)
-    generalExpensesRender(data);
-    return data;
+    let sum = 0;
 
+    const expenses = document.getElementById('expenses');
+
+    for (let i = 0; i < data.length; i++) {
+        sum += parseInt(data[i].sum);
+    }
+
+    expenses.innerText = sum.toLocaleString() + ' ₽';
+    expenses.classList.remove('expenses-amount_exceed');
+    expensesCounter(data);
+    return data;
+}
+
+function deleteExpenses() {
+    const table = document.querySelector('table');
+    table.addEventListener('click', async event => {
+
+        const body = JSON.stringify({
+            expenses_id: event.target.getAttribute('data-expenses_id')
+        });
+
+        const myHeaders = new Headers();
+        myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+        const response = await fetch('http://localhost:5858/api/expenses/delete', {
+            method: 'DELETE',
+            headers: myHeaders,
+            body: body,
+            mode: 'cors'
+        })
+        if (response.status === 201) {
+            const userId = document.createElement('select').value;
+            switch (currentTab) {
+                case 'today':
+                    renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+                    break;
+                case 'month':
+                    renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+                    break;
+            }
+        }
+    });
 }
 
 
@@ -156,6 +296,7 @@ async function leaveGroup() {
     return response;
 }
 
+
 // Смена группы по коду приглашения
 async function changeGroup(code) {
     const myHeaders = new Headers();
@@ -164,7 +305,7 @@ async function changeGroup(code) {
     const body = JSON.stringify({
         code: code
     });
-    console.log(body)
+
     const response = await fetch('http://localhost:5858/api/group/change', {
         method: 'PUT',
         mode: 'cors',
@@ -185,50 +326,23 @@ async function fetchGroups() {
         mode: 'cors'
     })
     const userGroups = await response.json();
+
     return userGroups;
 
 }
 
-async function renderTodayTable(group_id, date, userId = null) {
-
-
-    // создаем объект заголовка, который передаем с fetch
-    const myHeaders = new Headers();
-    //получаем credentials пользователя из браузера и добавляем в заголовки
-    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    let url = `http://localhost:5858/api/expenses/day/${date}/group/${group_id}`;
-
-    if (userId) {
-        url += `/user/${userId}`;
-    }
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: myHeaders,
-        mode: 'cors'
-    });
-
-
-    // получаем json ответа с базы данных
-    const data = await response.json();
-
-    // получение суммы всех расходов
-    generalExpensesRender(data);
-
-    // отрисовываем таблицу с данными за день
-    tableContentRender(data, ['goods', 'sum', 'date', 'user_name']);
-}
 
 let currentUserInfo = null;
 let userGroups = null;
 let chart = null;
 
 
-// отрисовка таблицы с данными из БД, получение полной информации о юзере
-// обработка кнопки с именем аккаунта ( мои группы, лимиты и выход из аккаунта )
+// отрисовка таблицы с данными из БД
+// получение полной информации о юзере
 (async function () {
     'use strict';
 
+    await deleteExpenses()
     const yearChart = document.getElementById('yearChart');
     hideElement(yearChart);
     const table = document.querySelector('table');
@@ -277,59 +391,73 @@ let chart = null;
     // отрисовка данных за день
     document.getElementById('today-tab').addEventListener('click', async event => {
         event.preventDefault();
+        showElement(document.getElementById('user-filter-select'));
         await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, document.getElementById('user-filter-select').value);
         toggleTab('today-tab');
         currentTab = 'today';
+        document.getElementById('table-header').innerText = 'Расходы сегодня';
         // если не false, то он выполняет вторую часть условия ( здесь - chart.destroy)
         chart && chart.destroy();
         showElement(table);
-        hideElement(yearChart);
-        document.getElementById('table-header').innerText = 'Расходы сегодня';
-        document.getElementById('limit').innerText = '1500Р';
+        showElement(document.getElementById('limitText'))
     });
 
     // отрисовка данных за месяц
-    document.getElementById('month-tab').addEventListener('click', event => {
+    document.getElementById('month-tab').addEventListener('click', async event => {
         event.preventDefault();
-        renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, document.getElementById('user-filter-select').value);
+        showElement(document.getElementById('limitText'))
+        showElement(document.getElementById('user-filter-select'));
+        await renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, document.getElementById('user-filter-select').value);
         toggleTab('month-tab');
         currentTab = 'month';
         // если не false, то он выполняет вторую часть условия ( здесь - chart.destroy)
         chart && chart.destroy();
         showElement(table);
-        hideElement(yearChart)
+        showElement(document.getElementById('limitText'))
         document.getElementById('table-header').innerText = 'Расходы за месяц';
-        document.getElementById('limit').innerText = '45000Р';
     });
 
 
     // отрисовка данных за год
-    document.getElementById('year-tab').addEventListener('click', async function(event) {
+    document.getElementById('year-tab').addEventListener('click', async function (event) {
         event.preventDefault();
         hideElement(table);
+        hideElement(document.getElementById('user-filter-select'));
         toggleTab('year-tab');
+        hideElement(document.getElementById('limitText'));
         currentTab = 'year';
         chart && chart.destroy();
         document.getElementById('table-header').innerText = 'Расходы за год';
 
-        const yearData = await renderYearData(currentUserInfo.group_id,currentUserInfo.date);
+        const yearData = await renderYearData(currentUserInfo.group_id, currentUserInfo.date);
+
         let month = [];
         let sum = [];
-        for (let i=0;i<yearData.length;i++){
+        let colors = [];
+        for (let i = 0; i < yearData.length; i++) {
             month.push(yearData[i]['month']);
             sum.push(yearData[i]['sum']);
+            colors.push(yearData[i]['color']);
         }
+
         chart = new Chart(yearChart, {
             type: 'bar',
             data: {
                 labels: month,
                 datasets: [{
+                    maxBarThickness: 60,
                     label: 'Расходы, ₽',
                     data: sum,
-                    borderWidth: 1
+                    borderWidth: 1,
+                    backgroundColor: colors,
                 }]
             },
             options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true
@@ -339,9 +467,15 @@ let chart = null;
         });
 
     });
-    console.log(currentUserInfo);
 
-    //Создание всех элементов вступления в группы
+
+})();
+
+// Обработка "Мои группы" (вступление, выход, приглашение и тд)
+(function () {
+    'use strict';
+
+    //Создание переменных всех элементов вступления в группы
     const generalDiv = document.getElementById('groups');
     const inviteDiv = document.getElementById('invite-send');
     const offer = document.createElement('h4');
@@ -352,6 +486,7 @@ let chart = null;
     const joinDiv = document.getElementById('join-send');
     const inviteBtn = document.getElementById('inviteBtn');
     const joinBtn = document.getElementById('joinBtn');
+    const inviteLink = document.getElementById('inviteLink');
 
     // открытие модалки с группами пользователя
     document.getElementById('my_groups_button').addEventListener('click', event => {
@@ -367,22 +502,24 @@ let chart = null;
         event.preventDefault();
         event.stopPropagation();
         showElement(groupList);
-        joinBtn.classList.add('form-wrapper__tabs_active-left');
+        showElement(joinDiv)
+        joinBtn.classList.add('form-wrapper__tab_active');
+        inviteBtn.classList.remove('form-wrapper__tab_active');
 
-        console.log(userGroups);
 
         // Рендер информации о группах пользователя
         for (const thisGroup of userGroups) {
 
             const participantsList = (thisGroup.participants || '').split(',');
-            console.log(participantsList)
 
+            // если групп больше чем 1 ( личная и куда вступил ), то отображается информация о ней
             if (participantsList.length > 1) {
-                // если групп больше чем 1 ( личная и куда вступил ), то отображается информация о ней
+
                 const groupDiv = document.createElement('div');
                 groupDiv.setAttribute('class', 'form-wrapper__group');
                 const participants = document.createElement('p');
-                participants.innerText = `Участники: ${thisGroup.participants}`;
+
+                participants.innerText = `Участники: ${participantsList.join(', ')}`;
                 const groupName = document.createElement('h3');
                 groupName.innerText = thisGroup.name;
 
@@ -390,9 +527,9 @@ let chart = null;
                 // скрываются кнопки Пригласить и Вступить
                 if (thisGroup.group_id !== currentUserInfo.user_id) {
 
-                    hideElement(inviteBtn);
-                    hideElement(joinBtn);
+                    hideElement(document.querySelector('.form-wrapper__tabs'));
                     hideElement(joinDiv);
+                    hideElement(inviteLink);
 
                     leaveBtn.innerText = 'Покинуть группу';
                     leaveBtn.addEventListener('click', async function (event) {
@@ -402,8 +539,18 @@ let chart = null;
                     })
                 } else {
 
-                    hideElement(joinBtn);
+                    showElement(inviteLink)
+                    hideElement(document.querySelector('.form-wrapper__tabs'));
                     hideElement(joinDiv);
+                    inviteLink.addEventListener('click', async event => {
+                        event.preventDefault();
+                        showElement(inviteDiv);
+
+                        offer.innerText = 'Скопируйте код приглашения и отправьте другу';
+                        inviteCode.innerText = await getInviteCode();
+                        inviteDiv.appendChild(offer);
+                        inviteDiv.appendChild(inviteCode);
+                    })
 
                 }
 
@@ -412,12 +559,13 @@ let chart = null;
                 groupDiv.appendChild(leaveBtn);
                 generalDiv.appendChild(groupDiv);
             } else {
+                hideElement(document.getElementById('inviteLink'));
                 const groupDiv = document.createElement('div');
                 groupDiv.setAttribute('class', 'form-wrapper__group');
                 const groupName = document.createElement('h3');
                 groupName.innerText = 'Групп нет';
                 const note = document.createElement('p');
-                note.innerText = 'Пригласите кого-нибудь. Или вступите в группу друга';
+                note.innerText = 'Пригласите кого-нибудь. Или вступите в группу';
                 groupDiv.appendChild(groupName);
                 groupDiv.appendChild(note);
                 generalDiv.appendChild(groupDiv);
@@ -428,8 +576,8 @@ let chart = null;
         inviteBtn.addEventListener('click', async function (event) {
             hideElement(joinDiv);
 
-            inviteBtn.classList.add('form-wrapper__tabs_active-right');
-            joinBtn.classList.remove('form-wrapper__tabs_active-left');
+            inviteBtn.classList.add('form-wrapper__tab_active');
+            joinBtn.classList.remove('form-wrapper__tab_active');
 
             offer.innerText = 'Скопируйте код приглашения и отправьте другу';
             inviteCode.innerText = `${await getInviteCode()}`;
@@ -443,13 +591,12 @@ let chart = null;
             event.preventDefault();
             inviteDiv.innerHTML = '';
             joinDiv.classList.remove('invisible');
-            joinBtn.classList.add('form-wrapper__tabs_active-left');
-            inviteBtn.classList.remove('form-wrapper__tabs_active-right');
+            joinBtn.classList.add('form-wrapper__tab_active');
+            inviteBtn.classList.remove('form-wrapper__tab_active');
         })
 
         // отправка формы вступления в группу
         const joinForm = document.getElementById('joinForm');
-        console.log(joinForm)
         joinForm.addEventListener('submit', async function (event) {
             event.preventDefault();
             event.stopPropagation();
@@ -467,6 +614,80 @@ let chart = null;
         localStorage.removeItem('credentials');
         window.location.reload();
     })
+})();
+
+
+// Обработка добавление лимитов
+(function () {
+    'use strict';
+
+
+    const limitSpan = document.getElementById('limitDay');
+    const form = document.getElementById('newLimit');
+    const limitFormWrapper = document.getElementById('limit_form')
+    const changeLimitBtn = document.getElementById('change-limit');
+    changeLimitBtn.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        limitSpan.innerText = 0 + ' ₽';
+        form.reset();
+        closeAllModals();
+        showElement(limitFormWrapper);
+    });
+
+    closeModal(limitFormWrapper);
+
+    const closeBtn = document.getElementById('closeLimitForm');
+    closeBtn.addEventListener('click', event => {
+        hideElement(limitFormWrapper);
+    })
+
+    // получение количества дней в месяце и подсчет лимита на день при вводе значений в инпуте
+    const limitInput = document.getElementById('limitInput');
+    limitInput.addEventListener('input', async event => {
+        const myHeaders = new Headers();
+        const dateParts = currentUserInfo.date.split('-');
+        const year = dateParts[0];
+        const month = dateParts[1];
+        myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+        const response = await fetch(`http://localhost:5858/api/amount/days/month/${month}/year/${year}`, {
+            method: 'GET',
+            headers: myHeaders,
+            mode: 'cors'
+        })
+        const days = await response.json();
+        const dayLimit = Math.floor(event.target.value / days.days);
+        limitSpan.innerText = dayLimit.toLocaleString() + ' ₽';
+    })
+
+    // Добавление лимита
+
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const body = {
+            'limit': event.target.querySelector('input[name="limit"]').value
+        }
+
+        const myHeaders = new Headers();
+        myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+        const dateParts = currentUserInfo.date.split('-');
+        const year = dateParts[0];
+        const month = dateParts[1];
+        const response = fetch(`http://localhost:5858/api/month/${month}/year/${year}/limit`, {
+            method: 'POST',
+            headers: myHeaders,
+            body: JSON.stringify(body),
+            mode: 'cors'
+        })
+
+        if ((await response).status === 201) {
+            window.location.reload()
+        }
+    });
+
 
 })();
 
@@ -487,7 +708,7 @@ let chart = null;
         document.getElementById('group-wrapper').appendChild(purchaseNode)
         document.querySelector('.form-wrapper__form').reset();
 
-        purchaseForm.classList.remove('invisible');
+        showElement(purchaseForm);
     });
     closeModal(purchaseForm);
 
@@ -548,11 +769,7 @@ let chart = null;
 
         // Если все успешно, очищаем форму от ошибок и данных, скрываем ее и обновляем таблицу с расходами
         if (response.status === 200) {
-            document.querySelector('form').reset();
-            hideElement(purchaseForm);
-            renderTodayTable(currentUserInfo.group_id, currentUserInfo.date);
-            toggleTab('today-tab');
-            errorDiv.innerHTML = '';
+            window.location.reload();
         }
 
         // сохраняем первый попавшийся блок с импутами

@@ -1,0 +1,79 @@
+
+.main-header {
+  background: $primary-color;
+  margin-bottom: 48px;
+
+  &__content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    max-width: 1170px;
+    margin: 0 auto;
+  }
+
+  &__logo {
+    a {
+      color: #fff;
+      font-size: 24px;
+      font-weight: bolder;
+      cursor: pointer;
+    }
+  }
+
+  &__user {
+    a {
+      font-size: 16px;
+      color: $dark-color;
+      font-weight: bolder;
+      padding: 8px 16px;
+      background: #fff;
+      border-radius: 8px;
+
+      &:hover {
+        background: #f1f1f1;
+      }
+    }
+  }
+}
+
+.drop-down__settings {
+  background-color: #fff;
+  display: flex;
+  position: absolute;
+  right: 12%;
+  top: 8%;
+  flex-direction: column;
+  padding: 16px 24px;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 6px 0px rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+
+  ul {
+    margin: 12px 0 12px 0;
+  }
+
+  li {
+    list-style-type: none;
+    padding: 8px 0px;
+  }
+
+  p {
+    border-top: 1px solid #979797;
+    padding-top: 8px;
+    cursor: pointer;
+    text-align: center !important;
+
+    a {
+      color: red;
+      display: block;
+      float: left;
+    }
+  }
+}
+
+.modal {
+  li {
+    cursor: pointer;
+  }
+}

@@ -275,11 +275,30 @@ $app->get('/api/expenses/year/{year}/group/{group}', function (Request $request,
         '12' => 'Декабрь'
     ];
     $result = $data->getYearData($args['year'], $args['group']);
-    // меняем цифры месяца на нормальное название
-    for ($i = 0; $i < count($result); $i++) {
-        $result[$i]['month'] = $months[$result[$i]['month']];
-        $result[$i]['color'] = $result[$i]['sum'] > 30000 ? 'rgba(228,0,69,.5)': 'rgba(0,174,104,.5)';
+    $limits = $data->selectData('select amount, month from limits where year = "'.$args['year'].'"');
+    $temp = [];
+
+    foreach ($limits as $limit) {
+        $temp[$limit['month']] = $limit['amount'];
     }
+
+
+    // меняем цифры месяца на нормальное название
+    // передаем цвет в зависимости от превышения лимита
+
+    for ($i = 0; $i < count($result); $i++) {
+
+        if ($temp[intval($result[$i]['month'])]){
+            $result[$i]['limit'] = $temp[intval($result[$i]['month'])];
+            $result[$i]['color'] = intval($result[$i]['sum']) > $temp[intval($result[$i]['month'])] ? 'rgba(228,0,69,.5)': 'rgba(0,174,104,.5)';
+        }
+        else{
+            $result[$i]['color'] = 'rgba(0,174,104,.5)';
+        }
+
+        $result[$i]['month'] = $months[$result[$i]['month']];
+    }
+
     $payload = json_encode($result);
     $response->getBody()->write($payload);
     return $response

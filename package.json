@@ -7,7 +7,7 @@
     "buildLogin": "sass --style=compressed --no-source-map front/log.scss front/login.css",
     "watchLogin": "sass --watch front/log.scss front/login.css",
     "buildMain": "sass --style=compressed --no-source-map front/mainTable.scss front/style.css",
-    "watchLogin": "sass --watch front/mainTable.scss front/style.css"
+    "watchMain": "sass --watch front/mainTable.scss front/style.css"
   },
   "author": "",
   "license": "ISC"

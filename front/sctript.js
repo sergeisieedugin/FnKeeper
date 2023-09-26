@@ -448,7 +448,7 @@ let chart = null;
                     maxBarThickness: 60,
                     label: 'Расходы, ₽',
                     data: sum,
-                    borderWidth: 1,
+                    borderWidth: 0,
                     backgroundColor: colors,
                 }]
             },

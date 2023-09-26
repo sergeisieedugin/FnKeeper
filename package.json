@@ -10,5 +10,8 @@
     "watchMain": "sass --watch front/mainTable.scss front/style.css"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^4.0.2"
+  }
 }

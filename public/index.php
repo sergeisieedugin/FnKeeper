@@ -288,7 +288,7 @@ $app->get('/api/expenses/year/{year}/group/{group}', function (Request $request,
 
     for ($i = 0; $i < count($result); $i++) {
 
-        if ($temp[intval($result[$i]['month'])]){
+        if (isset($temp[intval($result[$i]['month'])])){
             $result[$i]['limit'] = $temp[intval($result[$i]['month'])];
             $result[$i]['color'] = intval($result[$i]['sum']) > $temp[intval($result[$i]['month'])] ? 'rgba(228,0,69,.5)': 'rgba(0,174,104,.5)';
         }

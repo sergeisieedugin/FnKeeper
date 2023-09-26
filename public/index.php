@@ -32,7 +32,7 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([ #---Отправля�
 ]));                                                       #Принимаемый формат: 'user' => 'password'
 
 // создание пользователем нового аккаунта
-$app->put('/api/signup', function (Request $request, Response $response, $args) {
+$app->put('/api/signup', function (Request $request, Response $response) {
     global $salt;
     $data = new Data;
     $parsedBody = $request->getBody()->getContents();
@@ -100,7 +100,7 @@ $app->put('/api/signup', function (Request $request, Response $response, $args) 
 });
 
 // вход пользователя
-$app->post('/api/login', function (Request $request, Response $response, $args) {
+$app->post('/api/login', function (Request $request, Response $response) {
     global $salt;
     $data = new Data();
     $parsedBody = $request->getBody()->getContents();
@@ -124,7 +124,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 });
 
 // получение всех групп пользователя ( личная группа и группы, куда он вступил )
-$app->get('/api/user/groups', function (Request $request, Response $response, $args) {
+$app->get('/api/user/groups', function (Request $request, Response $response) {
     $account = $request->getServerParams()["PHP_AUTH_USER"];
     $data = new Data();
     $user = $data->getUserByAccount($account);
@@ -143,7 +143,7 @@ $app->get('/api/user/groups', function (Request $request, Response $response, $a
 });
 
 // здесь мы узнаем текущего пользователя, его группу и всех пользователей, которые входят в эту группу
-$app->get('/api/user/current', function (Request $request, Response $response, $args) {
+$app->get('/api/user/current', function (Request $request, Response $response) {
     // Указываем часовой пояс, чтобы не было бага, когда отдаются данные по часовому поясу сервера
     date_default_timezone_set('Asia/Sakhalin');
     // узнаем текущий авторизированный аккаунт
@@ -166,7 +166,7 @@ $app->get('/api/user/current', function (Request $request, Response $response, $
 });
 
 // формирование кода приглашения в группу и добавление его в таблицу invites
-$app->post('/api/group/invite/code', function (Request $request, Response $response, $args) {
+$app->post('/api/group/invite/code', function (Request $request, Response $response) {
     $data = new Data();
     $unique = substr(base64_encode(mt_rand()), 0, 15);
     $user = $request->getServerParams()["PHP_AUTH_USER"];
@@ -190,7 +190,7 @@ $app->post('/api/group/invite/code', function (Request $request, Response $respo
 });
 
 // Выход из группы, куда был приглашен пользователь
-$app->put('/api/group/leave', function (Request $request, Response $response, $args) {
+$app->put('/api/group/leave', function (Request $request, Response $response) {
     $data = new Data();
     $user = $request->getServerParams()["PHP_AUTH_USER"];
     $stmt = $data->getPdo()->query('select owner from `groups` where name="' . $user . '"');
@@ -202,7 +202,7 @@ $app->put('/api/group/leave', function (Request $request, Response $response, $a
 });
 
 // приглашение по коду
-$app->put('/api/group/change', function (Request $request, Response $response, $args) {
+$app->put('/api/group/change', function (Request $request, Response $response) {
     $data = new Data();
     $parsedBody = $request->getBody()->getContents();
     $body = json_decode($parsedBody, true);

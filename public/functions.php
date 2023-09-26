@@ -4,20 +4,20 @@ class Data
 {
 
 
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct()
     {
         $this->pdo = new PDO('mysql:host=localhost;port=3306;dbname=financial;', 'root', 'root');
     }
 
-    public function getPdo()
+    public function getPdo(): PDO
     {
         return $this->pdo;
     }
 
 
-    public function getUsersForAuth()
+    public function getUsersForAuth(): array
     {
         $users = $this->selectData('select account, token from users');
         $result = [];
@@ -28,7 +28,7 @@ class Data
     }
 
 
-    public function selectData($query)
+    public function selectData($query): array
     {
         $sql = $this->pdo->query($query);
         $sql->execute();
@@ -50,7 +50,7 @@ class Data
     }
 
     // получение данных за месяц
-    public function getMonthData($year, $month, $groupId, $userId = null)
+    public function getMonthData($year, $month, $groupId, $userId = null): array
     {
         $date = $year . '-' . $month;
         $query = "select u.name user_name, e.name goods, e.expenses_id, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%d %b, %H:%i') date, e.sum
@@ -63,7 +63,7 @@ class Data
         return $this->selectData($query);
     }
 
-    public function getYearData($year, $groupId)
+    public function getYearData($year, $groupId): array
     {
         $query = "select DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%m') month, SUM(e.sum) sum
                         from expenses e
@@ -72,7 +72,7 @@ class Data
         return $this->selectData($query);
     }
 
-    public function getDayData($day, $groupId, $userId = null)
+    public function getDayData($day, $groupId, $userId = null): array
     {
         $query = "select u.name user_name, e.name goods, e.expenses_id, DATE_FORMAT(CONVERT_TZ(e.date,'+00:00','+11:00'), '%H:%i') date, e.sum
                       from expenses e inner join users u on e.user_id=u.user_id 
@@ -92,7 +92,7 @@ class Data
     }
 
 
-    public function addExpense($purchase, $user)
+    public function addExpense($purchase, $user): void
     {
         // groupId для того, чтобы история расходов сохранялась даже тогда, когда пользователь переключает свои группы
         $groupId = $this->selectData("select group_id from users where user_id = $user")[0]['group_id'];
@@ -118,19 +118,19 @@ class Data
 
     }
 
-    public function getGroupUsers($group)
+    public function getGroupUsers($group): array
     {
         $query = "select name, user_id from users where group_id = $group";
         return $this->selectData($query);
     }
 
-    public function getLimitForMonth($group, $month, $year)
+    public function getLimitForMonth($group, $month, $year): array
     {
         $query = "select month,year,amount from limits where group_id=$group and month = $month and year = $year";
         return $this->selectData($query);
     }
 
-    public function getLimitForDay($group, $month, $year)
+    public function getLimitForDay($group, $month, $year): array
     {
         $query = "select month,year,amount from limits where group_id=$group and month=$month and year=$year";
         return $this->selectData($query);

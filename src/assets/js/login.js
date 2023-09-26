@@ -3,6 +3,7 @@ const signupForm = document.getElementById('signup-form')
 
 
 
+
 // переключение на форму с регистрацией
 document.getElementById('signup-link').addEventListener('click', event => {
     event.preventDefault();

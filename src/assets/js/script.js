@@ -5,6 +5,8 @@ const purchaseForm = document.getElementById('purchase_form');
 const groupList = document.getElementById('groups_list');
 const select = document.querySelector('.drop-down__settings');
 
+const localUrl = 'http://localhost:5858';
+
 // Перезагрузка страницы при нажатии на логотип
 const logo = document.querySelector('.main-header__logo');
 logo.addEventListener('click', event => {
@@ -98,16 +100,7 @@ function renderExpenses(sum, limit) {
     }
 }
 
-// Получение лимита расходов на месяц
-async function getMonthLimit(groupId, month, year) {
-    const myHeaders = new Headers();
-    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`http://localhost:5858/api/limit/group/${groupId}/month/${month}/year/${year}`, {
-        method: 'GET',
-        headers: myHeaders,
-        mode: 'cors'
-    })
-
+async function renderLimit (response) {
     const limit = await response.json();
 
     if (response.status === 201) {
@@ -121,27 +114,29 @@ async function getMonthLimit(groupId, month, year) {
     return limit;
 }
 
+// Получение лимита расходов на месяц
+async function getMonthLimit(groupId, month, year) {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
+    const response = await fetch(`${localUrl}/api/limit/group/${groupId}/month/${month}/year/${year}`, {
+        method: 'GET',
+        headers: myHeaders,
+        mode: 'cors'
+    })
+    return await renderLimit(response)
+}
+
 // Получение лимита расходов на день
 async function getDayLimit(group, month, year,day) {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`http://localhost:5858/api/limit/group/${group}/month/${month}/year/${year}/day/${day}`, {
+    const response = await fetch(`${localUrl}/api/limit/group/${group}/month/${month}/year/${year}/day/${day}`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
     })
 
-    const limit = await response.json();
-
-    if (response.status === 201) {
-
-        document.getElementById('limit').innerText = limit.limit.toLocaleString() + ' ₽';
-
-    } else if (response.status === 302) {
-        document.getElementById('limit').innerText = limit.message;
-    }
-
-    return limit;
+    return await renderLimit(response)
 }
 
 
@@ -152,7 +147,7 @@ async function renderTodayTable(group_id, date, userId = null) {
     const myHeaders = new Headers();
     //получаем credentials пользователя из браузера и добавляем в заголовки
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    let url = `http://localhost:5858/api/expenses/day/${date}/group/${group_id}`;
+    let url = `${localUrl}/api/expenses/day/${date}/group/${group_id}`;
 
     if (userId) {
         url += `/user/${userId}`;
@@ -191,7 +186,7 @@ async function renderMonthTable(group_id, date, userId = null) {
     const myHeaders = new Headers();
     //получаем credentials пользователя из браузера и добавляем в заголовки
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    let url = `http://localhost:5858/api/expenses/year/${year}/month/${month}/group/${group_id}`;
+    let url = `${localUrl}/api/expenses/year/${year}/month/${month}/group/${group_id}`;
 
     if (userId) {
         url += `/user/${userId}`;
@@ -216,10 +211,9 @@ async function renderMonthTable(group_id, date, userId = null) {
 async function renderYearData(groupId, date) {
     const dataParts = date.split('-');
     const year = dataParts[0];
-    const month = dataParts[1];
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`http://localhost:5858/api/expenses/year/${year}/group/${groupId}`, {
+    const response = await fetch(`${localUrl}/api/expenses/year/${year}/group/${groupId}`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -250,7 +244,7 @@ function deleteExpenses() {
 
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-        const response = await fetch('http://localhost:5858/api/expenses/delete', {
+        const response = await fetch(`${localUrl}/api/expenses/delete`, {
             method: 'DELETE',
             headers: myHeaders,
             body: body,
@@ -260,10 +254,10 @@ function deleteExpenses() {
             const userId = document.createElement('select').value;
             switch (currentTab) {
                 case 'today':
-                    renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+                    await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
                     break;
                 case 'month':
-                    renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+                    await renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, userId);
                     break;
             }
         }
@@ -275,7 +269,7 @@ function deleteExpenses() {
 async function getInviteCode() {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch('http://localhost:5858/api/group/invite/code', {
+    const response = await fetch(`${localUrl}/api/group/invite/code`, {
         method: 'POST',
         headers: myHeaders,
         mode: 'cors'
@@ -288,12 +282,11 @@ async function getInviteCode() {
 async function leaveGroup() {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch('http://localhost:5858/api/group/leave', {
+    return await fetch(`${localUrl}/api/group/leave`, {
         method: 'PUT',
         headers: myHeaders,
         mode: 'cors'
     })
-    return response;
 }
 
 
@@ -306,13 +299,12 @@ async function changeGroup(code) {
         code: code
     });
 
-    const response = await fetch('http://localhost:5858/api/group/change', {
+    return await fetch(`${localUrl}/api/group/change`, {
         method: 'PUT',
         mode: 'cors',
         body: body,
         headers: myHeaders,
     })
-    return response;
 }
 
 // Получение всех групп текущего пользователя
@@ -320,14 +312,13 @@ async function fetchGroups() {
 
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch('http://localhost:5858/api/user/groups', {
+    const response = await fetch(`${localUrl}/api/user/groups`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
     })
-    const userGroups = await response.json();
+    return  await response.json();
 
-    return userGroups;
 
 }
 
@@ -356,7 +347,7 @@ let chart = null;
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`)
     // fetch сам по себе это request. В переменную response он возвращает уже ответ от сервера
-    const response = await fetch('http://localhost:5858/api/user/current', {
+    const response = await fetch(`${localUrl}/api/user/current`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -573,7 +564,7 @@ let chart = null;
         }
 
         // обработка кнопки "Пригласить в группу"
-        inviteBtn.addEventListener('click', async function (event) {
+        inviteBtn.addEventListener('click', async function () {
             hideElement(joinDiv);
 
             inviteBtn.classList.add('form-wrapper__tab_active');
@@ -638,7 +629,7 @@ let chart = null;
     closeModal(limitFormWrapper);
 
     const closeBtn = document.getElementById('closeLimitForm');
-    closeBtn.addEventListener('click', event => {
+    closeBtn.addEventListener('click', () => {
         hideElement(limitFormWrapper);
     })
 
@@ -650,7 +641,7 @@ let chart = null;
         const year = dateParts[0];
         const month = dateParts[1];
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-        const response = await fetch(`http://localhost:5858/api/amount/days/month/${month}/year/${year}`, {
+        const response = await fetch(`${localUrl}/api/amount/days/month/${month}/year/${year}`, {
             method: 'GET',
             headers: myHeaders,
             mode: 'cors'
@@ -676,7 +667,7 @@ let chart = null;
         const dateParts = currentUserInfo.date.split('-');
         const year = dateParts[0];
         const month = dateParts[1];
-        const response = fetch(`http://localhost:5858/api/month/${month}/year/${year}/limit`, {
+        const response = fetch(`${localUrl}/api/month/${month}/year/${year}/limit`, {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(body),
@@ -696,7 +687,7 @@ let chart = null;
 (function () {
     'use strict';
 
-    document.getElementById('addbtn').addEventListener('click', event => {
+    document.getElementById('addBtn').addEventListener('click', event => {
         event.stopPropagation();
         closeAllModals()
 
@@ -761,7 +752,7 @@ let chart = null;
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
 
-        const response = await fetch(`http://localhost:5858/api/expenses/user/${currentUserInfo.user_id}`, {
+        const response = await fetch(`${localUrl}/api/expenses/user/${currentUserInfo.user_id}`, {
             method: "POST",
             body: JSON.stringify(body),
             headers: myHeaders,
@@ -781,7 +772,7 @@ let chart = null;
     })
 
     // закрытие формы добавления расходов по нажатию кнопки
-    document.getElementById('closeform').addEventListener('click', () => {
+    document.getElementById('closeForm').addEventListener('click', () => {
         hideElement(document.querySelector('.form-wrapper'));
 
     });
@@ -807,17 +798,17 @@ const selectOptionsRender = users => {
     }
     div.appendChild(select);
 
-    select.addEventListener('change', event => {
+    select.addEventListener('change', async event => {
         const userId = event.target.value;
 
         // при переключении таба, в глобальную переменную вносится изменение
         // это нужно для корректного отображение данных при переключении селекта и табов
         switch (currentTab) {
             case 'today':
-                renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+               await renderTodayTable(currentUserInfo.group_id, currentUserInfo.date, userId);
                 break;
             case 'month':
-                renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, userId);
+               await renderMonthTable(currentUserInfo.group_id, currentUserInfo.date, userId);
                 break;
         }
     });

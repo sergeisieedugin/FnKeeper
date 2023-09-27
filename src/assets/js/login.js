@@ -1,3 +1,5 @@
+const BASE_URL = 'http://localhost:5858'
+
 const loginForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form')
 
@@ -82,7 +84,7 @@ const errorDiv = document.querySelector('.form-wrapper__errors');
         // fetch обращается к адресу с параметрами ( метод, хэдерс, боди, мод и тд) и формирует ответ
         // fetch = получить (URL(откуда), настройка запроса)
         // так как в слушателе я определил ассинхронность функции, перед fetch пишу await
-        const response = await fetch('http://localhost:5858/api/login', {
+        const response = await fetch(BASE_URL + '/api/login', {
             method: 'post',
             //headers: myHeaders,
             // перекодируем объект в строки json
@@ -133,7 +135,7 @@ const errorDiv = document.querySelector('.form-wrapper__errors');
         const myHeaders = new Headers();
         myHeaders.append('Content-Type', 'application/json');
 
-        const response = await fetch('http://localhost:5858/api/signup', {
+        const response = await fetch(BASE_URL + '/api/signup', {
             method: 'PUT',
             body: JSON.stringify(body),
             headers: myHeaders,

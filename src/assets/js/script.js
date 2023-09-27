@@ -1,11 +1,10 @@
+const BASE_URL = 'http://localhost:5858'
 let currentTab = 'today';
 
 // объявление всех модалок и дроп-даунов
 const purchaseForm = document.getElementById('purchase_form');
 const groupList = document.getElementById('groups_list');
 const select = document.querySelector('.drop-down__settings');
-
-const localUrl = 'http://localhost:5858';
 
 // Перезагрузка страницы при нажатии на логотип
 const logo = document.querySelector('.main-header__logo');
@@ -118,7 +117,7 @@ async function renderLimit (response) {
 async function getMonthLimit(groupId, month, year) {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`${localUrl}/api/limit/group/${groupId}/month/${month}/year/${year}`, {
+    const response = await fetch(`${BASE_URL}/api/limit/group/${groupId}/month/${month}/year/${year}`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -130,7 +129,7 @@ async function getMonthLimit(groupId, month, year) {
 async function getDayLimit(group, month, year,day) {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`${localUrl}/api/limit/group/${group}/month/${month}/year/${year}/day/${day}`, {
+    const response = await fetch(`${BASE_URL}/api/limit/group/${group}/month/${month}/year/${year}/day/${day}`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -147,7 +146,7 @@ async function renderTodayTable(group_id, date, userId = null) {
     const myHeaders = new Headers();
     //получаем credentials пользователя из браузера и добавляем в заголовки
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    let url = `${localUrl}/api/expenses/day/${date}/group/${group_id}`;
+    let url = `${BASE_URL}/api/expenses/day/${date}/group/${group_id}`;
 
     if (userId) {
         url += `/user/${userId}`;
@@ -186,7 +185,7 @@ async function renderMonthTable(group_id, date, userId = null) {
     const myHeaders = new Headers();
     //получаем credentials пользователя из браузера и добавляем в заголовки
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    let url = `${localUrl}/api/expenses/year/${year}/month/${month}/group/${group_id}`;
+    let url = `${BASE_URL}/api/expenses/year/${year}/month/${month}/group/${group_id}`;
 
     if (userId) {
         url += `/user/${userId}`;
@@ -213,7 +212,7 @@ async function renderYearData(groupId, date) {
     const year = dataParts[0];
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`${localUrl}/api/expenses/year/${year}/group/${groupId}`, {
+    const response = await fetch(`${BASE_URL}/api/expenses/year/${year}/group/${groupId}`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -244,7 +243,7 @@ function deleteExpenses() {
 
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-        const response = await fetch(`${localUrl}/api/expenses/delete`, {
+        const response = await fetch(`${BASE_URL}/api/expenses/delete`, {
             method: 'DELETE',
             headers: myHeaders,
             body: body,
@@ -269,7 +268,7 @@ function deleteExpenses() {
 async function getInviteCode() {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`${localUrl}/api/group/invite/code`, {
+    const response = await fetch(`${BASE_URL}/api/group/invite/code`, {
         method: 'POST',
         headers: myHeaders,
         mode: 'cors'
@@ -282,7 +281,7 @@ async function getInviteCode() {
 async function leaveGroup() {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    return await fetch(`${localUrl}/api/group/leave`, {
+    return await fetch(`${BASE_URL}/api/group/leave`, {
         method: 'PUT',
         headers: myHeaders,
         mode: 'cors'
@@ -299,7 +298,7 @@ async function changeGroup(code) {
         code: code
     });
 
-    return await fetch(`${localUrl}/api/group/change`, {
+    return await fetch(`${BASE_URL}/api/group/change`, {
         method: 'PUT',
         mode: 'cors',
         body: body,
@@ -312,7 +311,7 @@ async function fetchGroups() {
 
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-    const response = await fetch(`${localUrl}/api/user/groups`, {
+    const response = await fetch(`${BASE_URL}/api/user/groups`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -347,7 +346,7 @@ let chart = null;
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`)
     // fetch сам по себе это request. В переменную response он возвращает уже ответ от сервера
-    const response = await fetch(`${localUrl}/api/user/current`, {
+    const response = await fetch(`${BASE_URL}/api/user/current`, {
         method: 'GET',
         headers: myHeaders,
         mode: 'cors'
@@ -641,7 +640,7 @@ let chart = null;
         const year = dateParts[0];
         const month = dateParts[1];
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
-        const response = await fetch(`${localUrl}/api/amount/days/month/${month}/year/${year}`, {
+        const response = await fetch(`${BASE_URL}/api/amount/days/month/${month}/year/${year}`, {
             method: 'GET',
             headers: myHeaders,
             mode: 'cors'
@@ -667,7 +666,7 @@ let chart = null;
         const dateParts = currentUserInfo.date.split('-');
         const year = dateParts[0];
         const month = dateParts[1];
-        const response = fetch(`${localUrl}/api/month/${month}/year/${year}/limit`, {
+        const response = fetch(`${BASE_URL}/api/month/${month}/year/${year}/limit`, {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(body),
@@ -752,7 +751,7 @@ let chart = null;
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Basic ${localStorage.getItem('credentials')}`);
 
-        const response = await fetch(`${localUrl}/api/expenses/user/${currentUserInfo.user_id}`, {
+        const response = await fetch(`${BASE_URL}/api/expenses/user/${currentUserInfo.user_id}`, {
             method: "POST",
             body: JSON.stringify(body),
             headers: myHeaders,

@@ -197,7 +197,7 @@ const build = gulp.series(clean, gulp.parallel(html,style,loginCss,js, img))
 const watch = gulp.parallel(build,watchFiles)
 
 
-// exports нужно для каждой функции
+// exports нужно для каждой функции. Потом можно их вызывать командой : gulp "название"
 exports.html = html;
 exports.style = style;
 exports.loginCss = loginCss;

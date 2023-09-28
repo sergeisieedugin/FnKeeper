@@ -78,7 +78,7 @@ $app->put('/api/signup', function (Request $request, Response $response) {
     $stmt = $data->getPdo()->prepare($insert);
     $stmt->execute([
         ':name' => $body['name'],
-        ':password' => crypt($body['password'],$salt),
+        ':password' => crypt($body['password'], $salt),
         ':account' => $body['account'],
         ':group_id' => $groupId,
         ':token' => $token
@@ -109,7 +109,7 @@ $app->post('/api/login', function (Request $request, Response $response) {
     $row = $data->getRow('select account, password from users where account="' . $body['account'] . '" and password = "' . crypt($body['password'], $salt) . '"');
     if ($row) {
         $token = substr(md5(mt_rand()), 0, 15);
-        $stmt = $data->getPdo()->prepare('update users set token = "'.$token.'" where account = "'.$row['account'].'"');
+        $stmt = $data->getPdo()->prepare('update users set token = "' . $token . '" where account = "' . $row['account'] . '"');
         $stmt->execute();
         $body = [
             'token' => $token
@@ -117,7 +117,7 @@ $app->post('/api/login', function (Request $request, Response $response) {
         $payload = json_encode($body);
         $response->getBody()->write($payload);
         return $response->
-            withStatus(201);
+        withStatus(201);
     }
     return $response->withStatus(401);
 
@@ -246,7 +246,7 @@ $app->get('/api/expenses/year/{year}/month/{month}/group/{group}[/user/{user_id:
 
     $targetMonths = ['/Jan/', '/Feb/', '/Mar/', '/Apr/', '/May/', '/June/', '/July/', '/Aug/', '/Sep/', '/Oct/', '/Nov/', '/Dec/'];
     $months = ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Нояб', 'Дек'];
-    for ($i = 0; $i<count($result); $i++){
+    for ($i = 0; $i < count($result); $i++) {
         $result[$i]['date'] = preg_replace($targetMonths, $months, $result[$i]['date']);
     }
 
@@ -275,7 +275,7 @@ $app->get('/api/expenses/year/{year}/group/{group}', function (Request $request,
         '12' => 'Декабрь'
     ];
     $result = $data->getYearData($args['year'], $args['group']);
-    $limits = $data->selectData('select amount, month from limits where year = "'.$args['year'].'"');
+    $limits = $data->selectData('select amount, month from limits where year = "' . $args['year'] . '"');
     $temp = [];
 
     foreach ($limits as $limit) {
@@ -288,11 +288,10 @@ $app->get('/api/expenses/year/{year}/group/{group}', function (Request $request,
 
     for ($i = 0; $i < count($result); $i++) {
 
-        if (isset($temp[intval($result[$i]['month'])])){
+        if (isset($temp[intval($result[$i]['month'])])) {
             $result[$i]['limit'] = $temp[intval($result[$i]['month'])];
-            $result[$i]['color'] = intval($result[$i]['sum']) > $temp[intval($result[$i]['month'])] ? 'rgba(228,0,69,.5)': 'rgba(0,174,104,.5)';
-        }
-        else{
+            $result[$i]['color'] = intval($result[$i]['sum']) > $temp[intval($result[$i]['month'])] ? 'rgba(228,0,69,.5)' : 'rgba(0,174,104,.5)';
+        } else {
             $result[$i]['color'] = 'rgba(0,174,104,.5)';
         }
 
@@ -307,13 +306,13 @@ $app->get('/api/expenses/year/{year}/group/{group}', function (Request $request,
 });
 
 // удаление пользователем траты
-$app->delete('/api/expenses/delete', function (Request $request, Response $response){
+$app->delete('/api/expenses/delete', function (Request $request, Response $response) {
     $data = new Data();
     $parsedBody = $request->getBody()->getContents();
-    $body = json_decode($parsedBody,true);
+    $body = json_decode($parsedBody, true);
     $account = $request->getServerParams()["PHP_AUTH_USER"];
     $user = $data->getUserByAccount($account);
-    $stmt = $data->getPdo()->prepare('delete from expenses where expenses_id = "'.$body['expenses_id'].'" and group_id= "'.$user['group_id'].'"');
+    $stmt = $data->getPdo()->prepare('delete from expenses where expenses_id = "' . $body['expenses_id'] . '" and group_id= "' . $user['group_id'] . '"');
     $stmt->execute();
     return $response->withStatus(201);
 });
@@ -348,10 +347,10 @@ $app->post('/api/month/{month}/year/{year}/limit', function (Request $request, R
     $account = $request->getServerParams()["PHP_AUTH_USER"];
     $user = $data->getUserByAccount($account);
     $body = json_decode($parsedBody, true);
-    $query = $data->getPdo()->query('select amount from limits where group_id = " '. $user['group_id'] . '" and month= "'.$args['month'].'"');
+    $query = $data->getPdo()->query('select amount from limits where group_id = " ' . $user['group_id'] . '" and month= "' . $args['month'] . '"');
     $query->execute();
     if ($query->rowCount() > 0) {
-        $stmt = $data->getPdo()->prepare('update limits set amount =" '. $body['limit'] . '" where group_id= "'. $user['group_id'] . '" and month= "'.$args['month'].'"');
+        $stmt = $data->getPdo()->prepare('update limits set amount =" ' . $body['limit'] . '" where group_id= "' . $user['group_id'] . '" and month= "' . $args['month'] . '"');
         $stmt->execute();
     } else {
         $stmt = $data->getPdo()->prepare('insert into limits(month, year, amount, group_id) value (:month, :year, :amount, :group)');
@@ -371,7 +370,7 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}', function (Reques
     $data = new Data();
     $result = $data->getLimitForMonth($args['group'], $args['month'], $args['year'])[0];
 
-    if ($result){
+    if ($result) {
         $monthLimit = ['limit' => $result['amount']]; #Получаем только значение лимита на месяц
         $payload = json_encode($monthLimit); #Перекодируем массив в строку json
         $response->getBody()->write($payload);
@@ -380,7 +379,7 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}', function (Reques
             ->withStatus(201);
     } else {
         $message = [
-            'message'=> 'лимит не установлен'
+            'message' => 'лимит не установлен'
         ];
         $payload = json_encode($message);
         $response->getBody()->write($payload);
@@ -391,9 +390,9 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}', function (Reques
 
 });
 // получение количества дней в месяце
-$app->get('/api/amount/days/month/{month}/year/{year}',function (Request $request, Response $response, $args){
+$app->get('/api/amount/days/month/{month}/year/{year}', function (Request $request, Response $response, $args) {
     $days = cal_days_in_month(CAL_GREGORIAN, $args['month'], $args['year']);
-    $result = ['days'=>$days];
+    $result = ['days' => $days];
     $payload = json_encode($result);
     $response->getBody()->write($payload);
     return $response->withStatus(201);
@@ -403,14 +402,14 @@ $app->get('/api/amount/days/month/{month}/year/{year}',function (Request $reques
 $app->get('/api/limit/group/{group}/month/{month}/year/{year}/day/{day}', function (Request $request, Response $response, $args) {
     $data = new Data();
     $limit = $data->getLimitForDay($args['group'], $args['month'], $args['year'])[0];#Получение первой строки из таблицы
-    if ($limit){
+    if ($limit) {
         $days = cal_days_in_month(CAL_GREGORIAN, $limit['month'], $limit['year']);#Считаем сколько дней в месяце
         $restDays = $days - $args['day'];
-        $date = $args['year'].'-'.$args['month'];
-        $monthSum = $data->selectData('select SUM(sum) summa from expenses where DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%Y-%m") = "'.$date.'" and group_id= "'.$args['group'].'"
-        and DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%d") < "'.$args['day'].'"');
+        $date = $args['year'] . '-' . $args['month'];
+        $monthSum = $data->selectData('select SUM(sum) summa from expenses where DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%Y-%m") = "' . $date . '" and group_id= "' . $args['group'] . '"
+        and DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%d") < "' . $args['day'] . '"');
 
-        $daySum = intval(($limit['amount'] - $monthSum[0]['summa'])  / $restDays);
+        $daySum = intval(($limit['amount'] - $monthSum[0]['summa']) / $restDays);
         $result = ['limit' => $daySum];
         $payload = json_encode($result); //Перекодируем массив в строки json
         $response->getBody()->write($payload);//Получаем обертку тела и пишем содержимое тела
@@ -418,9 +417,9 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}/day/{day}', functi
             ->withHeader('Content-Type', 'application/json')#указываем какой тип данных
             ->withStatus(201);
 
-    }else{
+    } else {
         $message = [
-          'message'=> 'лимит не установлен'
+            'message' => 'лимит не установлен'
         ];
         $payload = json_encode($message);
         $response->getBody()->write($payload);

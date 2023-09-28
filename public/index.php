@@ -48,6 +48,14 @@ $app->put('/api/signup', function (Request $request, Response $response) {
         return $response->withStatus(400);
     }
 
+    if (!preg_match('/^[a-zA-Z_]+$/i', $body['account'])){
+        $payload = json_encode([
+            'message' => 'Логин должен содержать буквы латинского алфавита'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withStatus(400);
+    }
+
     // Проверяем, если такой аккаунт существует
     $findUser = $data->getRow('select * from users where account="' . $body['account'] . '"');
     if ($findUser) {

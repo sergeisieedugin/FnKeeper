@@ -283,7 +283,7 @@ $app->get('/api/expenses/year/{year}/group/{group}', function (Request $request,
         '12' => 'Декабрь'
     ];
     $result = $data->getYearData($args['year'], $args['group']);
-    $limits = $data->selectData('select amount, month from limits where year = "' . $args['year'] . '"');
+    $limits = $data->selectData('select amount, month from limits where year = "' . $args['year'] . '" and group_id = '.$args['group']);
     $temp = [];
 
     foreach ($limits as $limit) {

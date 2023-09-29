@@ -416,7 +416,9 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}/day/{day}', functi
         $date = $args['year'] . '-' . $args['month'];
         $monthSum = $data->selectData('select SUM(sum) summa from expenses where DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%Y-%m") = "' . $date . '" and group_id= "' . $args['group'] . '"
         and DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%d") < "' . $args['day'] . '"');
-
+        if (!$restDays) {
+            $restDays = 1;
+        }
         $daySum = intval(($limit['amount'] - $monthSum[0]['summa']) / $restDays);
         $result = ['limit' => $daySum];
         $payload = json_encode($result); //Перекодируем массив в строки json

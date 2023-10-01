@@ -19,6 +19,7 @@ function tableContentRender(rows, columns) {
     //Очистка данных с таблицы
     const tBody = document.getElementById('table-content');
     tBody.innerHTML = '';
+    const dataLabel = ['Товар','Стоимость, ₽','Дата','Покупатель',''];
 
     for (const row of rows) {
 
@@ -27,13 +28,17 @@ function tableContentRender(rows, columns) {
         deleteBtn.innerText = 'Удалить';
         deleteBtn.classList.add('table__delete_btn');
         deleteBtn.setAttribute('data-expenses_id', row.expenses_id)
+        let counter = 0;
         for (const rowName of columns) {
             const td = document.createElement('td');
+            td.setAttribute('data-label', dataLabel[counter])
             td.innerText = row[rowName];
             tr.appendChild(td);
             tr.appendChild(deleteBtn);
+            counter++;
         }
         tBody.appendChild(tr);
+
     }
 }
 
@@ -90,7 +95,8 @@ function expensesCounter(data) {
 // Отрисовка траты определенным цветом в зависимости от превышения лимита
 function renderExpenses(sum, limit) {
     const expenses = document.getElementById('expenses');
-    if (sum > limit.limit) {
+    limit = parseInt(limit.limit)
+    if (sum > limit) {
         expenses.innerText = sum.toLocaleString() + ' ₽';
         expenses.classList.add('expenses-amount_exceed')
     } else {
@@ -351,6 +357,11 @@ let chart = null;
         headers: myHeaders,
         mode: 'cors'
     })
+    if (response.status === 401){
+        localStorage.removeItem('credentials');
+        window.location.replace("/login.html");
+        return
+    }
     // в переменную получаем объект json с именем пользователя, айди группы и всеъ пользователей этой группы
     currentUserInfo = await response.json();
 

@@ -158,6 +158,9 @@ $app->get('/api/user/current', function (Request $request, Response $response) {
     $account = $request->getServerParams()["PHP_AUTH_USER"];
     $data = new Data();
     $user = $data->getUserByAccount($account);
+    if (!$user){
+        return $response->withStatus(401);
+    }
     $body = [
         'user_id' => $user['user_id'],
         'user_name' => $user['name'],
@@ -420,7 +423,20 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}/day/{day}', functi
             $restDays = 1;
         }
         $daySum = intval(($limit['amount'] - $monthSum[0]['summa']) / $restDays);
-        $result = ['limit' => $daySum];
+        if ($daySum > 0){
+            $result = ['limit' => $daySum];
+
+        }else if ($daySum < 0){
+            $message = [
+                'message' => 0
+            ];
+            $payload = json_encode($message);
+            $response->getBody()->write($payload);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(302);
+        }
+
         $payload = json_encode($result); //Перекодируем массив в строки json
         $response->getBody()->write($payload);//Получаем обертку тела и пишем содержимое тела
         return $response

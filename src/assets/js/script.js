@@ -357,6 +357,8 @@ let chart = null;
         headers: myHeaders,
         mode: 'cors'
     })
+
+    // если credentials не верные, отправляем на страницу авторизации
     if (response.status === 401){
         localStorage.removeItem('credentials');
         window.location.replace("/login.html");

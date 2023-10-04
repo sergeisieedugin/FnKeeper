@@ -415,13 +415,11 @@ $app->get('/api/limit/group/{group}/month/{month}/year/{year}/day/{day}', functi
     $limit = $data->getLimitForDay($args['group'], $args['month'], $args['year'])[0];#Получение первой строки из таблицы
     if ($limit) {
         $days = cal_days_in_month(CAL_GREGORIAN, $limit['month'], $limit['year']);#Считаем сколько дней в месяце
-        $restDays = $days - $args['day'];
+        $restDays = $days - $args['day'] + 1;
         $date = $args['year'] . '-' . $args['month'];
         $monthSum = $data->selectData('select SUM(sum) summa from expenses where DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%Y-%m") = "' . $date . '" and group_id= "' . $args['group'] . '"
         and DATE_FORMAT(CONVERT_TZ(date,"+00:00","+11:00"), "%d") < "' . $args['day'] . '"');
-        if (!$restDays) {
-            $restDays = 1;
-        }
+
         $daySum = intval(($limit['amount'] - $monthSum[0]['summa']) / $restDays);
         if ($daySum > 0){
             $result = ['limit' => $daySum];
